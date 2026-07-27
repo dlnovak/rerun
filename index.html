@@ -289,6 +289,47 @@
   .app .ty{font-size:9px;opacity:.6;letter-spacing:.08em;text-transform:uppercase}
   .appears-empty{font-size:12px;color:var(--mute)}
 
+  /* ============ characters ============ */
+  .char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+  .ch{position:relative;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border-radius:14px;padding:16px;cursor:pointer;transition:.15s;overflow:hidden}
+  .ch:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .ch.isfav{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent), 0 12px 28px -18px var(--accent)}
+  .ch-role{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2)}
+  .ch h4{font-family:var(--font-display);margin:7px 0 6px;font-size:18px;font-weight:800;line-height:1.12;padding-right:26px}
+  .ch-tag{font-size:12.5px;color:var(--mute);line-height:1.35}
+  .ch-star{position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;font-size:19px;
+    line-height:1;color:var(--mute);transition:.14s;padding:0}
+  .ch-star:hover{color:var(--accent);transform:scale(1.15)}
+  .ch-star.on{color:var(--accent)}
+  .fav-banner{display:flex;align-items:center;gap:13px;border:1px solid var(--accent);border-radius:14px;
+    padding:14px 16px;margin:2px 0 18px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent)}
+  .fav-banner .fav-star{font-size:26px;color:var(--accent);line-height:1}
+  .fav-lbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+  .fav-name{font-family:var(--font-display);font-size:20px;font-weight:800;margin-top:2px}
+  .chd-tag{color:var(--mute);font-size:13.5px;margin-top:6px}
+  .chd-bio{font-size:14.5px;line-height:1.6;color:var(--cream);margin:0}
+  .favbtn{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:12px;
+    padding:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:.14s;margin-bottom:6px}
+  .favbtn:hover{border-color:var(--accent)}
+  .favbtn.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+  /* ============ grouped moods ============ */
+  .feelings-grouped{display:flex;flex-direction:column;gap:12px}
+  .moodgroup-lbl{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2);margin-bottom:7px}
+  /* ============ intensity dials ============ */
+  .dials{display:flex;flex-direction:column;gap:11px}
+  .dialrow{display:flex;align-items:center;gap:12px}
+  .dial-label{width:56px;flex:none;font-size:13px;color:var(--cream)}
+  .dial-track{display:flex;gap:5px;flex:1}
+  .dseg{flex:1;height:30px;border:1px solid var(--line);background:var(--panel);border-radius:7px;cursor:pointer;
+    transition:.12s;color:var(--mute);font-size:11px;font-family:inherit}
+  .dseg:hover{border-color:var(--accent)}
+  .dseg.on{background:var(--accent);border-color:var(--accent)}
+  .dseg.zero{flex:0 0 34px}
+  .dseg.zero.on{background:var(--mute);border-color:var(--mute);color:var(--accent-ink)}
+  .dial-level{width:56px;flex:none;text-align:right;font-size:11.5px;color:var(--mute)}
+
   footer.foot{color:var(--mute);font-size:11px;text-align:center;margin-top:40px;letter-spacing:.05em}
 
   @media (max-width:560px){
@@ -360,7 +401,9 @@
       <button class="vbtn" data-v="nah"><span class="emo">👎</span><span class="lbl">Not for me</span></button>
     </div>
     <div class="fieldlabel">How it felt <span style="text-transform:none;letter-spacing:0">(tap any)</span></div>
-    <div class="feelings" id="d-feelings"></div>
+    <div class="feelings-grouped" id="d-feelings"></div>
+    <div class="fieldlabel">Dial it in <span style="text-transform:none;letter-spacing:0">(optional)</span></div>
+    <div class="dials" id="d-dials"></div>
     <div class="fieldlabel">Score <span style="text-transform:none;letter-spacing:0">(optional)</span></div>
     <div class="rating10" id="d-rating"></div>
     <div class="fieldlabel">Keywords <span style="text-transform:none;letter-spacing:0">(type + Enter)</span></div>
@@ -421,6 +464,28 @@
     <button class="btn ghost" onclick="editCodexEntry()">Edit</button>
     <button class="btn ghost" onclick="deleteCodexEntry()">Delete</button>
     <span class="saved-note" id="cx-saved">Saved ✓</span>
+  </div>
+</aside>
+
+<div class="scrim" id="ch-scrim" onclick="closeChar()"></div>
+<aside class="drawer" id="ch-drawer" aria-hidden="true">
+  <button class="x" onclick="closeChar()" aria-label="Close">✕</button>
+  <div class="dhead">
+    <div class="eyebrow" id="chd-role"></div>
+    <h2 id="chd-name"></h2>
+    <div class="chd-tag" id="chd-tag"></div>
+  </div>
+  <div class="dbody">
+    <button class="favbtn" id="chd-star" onclick="toggleFavFromDrawer()">☆ Mark as favorite</button>
+    <div class="fieldlabel">Bio</div>
+    <p class="chd-bio" id="chd-bio"></p>
+    <div class="fieldlabel">Your take <span style="text-transform:none;letter-spacing:0">(optional)</span></div>
+    <textarea id="chd-note" placeholder="What you think of them, a favorite moment, why they caught you…"></textarea>
+  </div>
+  <div class="dfoot">
+    <button class="btn save" onclick="saveCharNote()">Save</button>
+    <button class="btn ghost" onclick="closeChar()">Close</button>
+    <span class="saved-note" id="chd-saved">Saved ✓</span>
   </div>
 </aside>
 
@@ -524,6 +589,29 @@ const VERDICT_LABELS = {
   shelf:{love:"Loved it",like:"Liked",meh:"Meh",nah:"Not for me"}
 };
 const FEELINGS = ["Nostalgic","Funny","Action-packed","Cheesy","Clever","Boring","Weird","Comfort watch","Filler","Iconic","Villain-heavy","Slow","Rewatchable","Surprising","Emotional","Dark"];
+
+// ---------- characters (Season 1 rosters, from Fandom) ----------
+const CHARACTERS = {"tmnt-1987":[{"id":"ch-t1","name":"Leonardo","role":"Hero","tagline":"Leader in blue","bio":"The level-headed leader of the Turtles, wielding twin katana. Named for Leonardo da Vinci, he's the disciplined one who keeps his brothers focused and follows Splinter's teachings most closely.","season":1},{"id":"ch-t2","name":"Michelangelo","role":"Hero","tagline":"Party dude in orange","bio":"The fun-loving free spirit of the team, armed with nunchucks and an endless appetite for pizza. The comic relief, famous for 'Cowabunga!' and a laid-back surfer attitude.","season":1},{"id":"ch-t3","name":"Donatello","role":"Hero","tagline":"Brains in purple","bio":"The team's inventor and tech genius, fighting with a bo staff. He builds and fixes the Turtles' gadgets and vehicles, and does machines — as the theme song says.","season":1},{"id":"ch-t4","name":"Raphael","role":"Hero","tagline":"Rebel in red","bio":"The tough, sarcastic hothead of the group, wielding twin sai. Quick to anger and quick with a wisecrack, he often breaks the fourth wall with a sardonic aside.","season":1},{"id":"ch-t5","name":"Splinter","role":"Ally","tagline":"The wise sensei","bio":"Formerly the ninja master Hamato Yoshi, mutated into a rat by Krang's mutagen. The Turtles' adoptive father and teacher, he trained them in ninjutsu in the sewers beneath New York.","season":1},{"id":"ch-t6","name":"April O'Neil","role":"Ally","tagline":"Channel 6 reporter","bio":"An intrepid TV news reporter for Channel 6 and the Turtles' first human friend and surrogate sister. Her investigation into a citywide crime wave first led her into the sewers and into the Turtles' lives.","season":1},{"id":"ch-t7","name":"Shredder","role":"Villain","tagline":"The armored archenemy","bio":"Oroku Saki, the blade-armored leader of the Foot Clan and the Turtles' archenemy. Allied with Krang, he schemes endlessly from the Technodrome to destroy the Turtles and conquer New York.","season":1},{"id":"ch-t8","name":"Krang","role":"Villain","tagline":"Warlord from Dimension X","bio":"A disembodied alien brain and exiled warlord from Dimension X. Robbed of his body, he rides in a robotic walker and commands the Technodrome, funding and masterminding most of Shredder's schemes.","season":1},{"id":"ch-t9","name":"Bebop","role":"Henchman","tagline":"Mutant warthog","bio":"A former street-gang punk mutated by Shredder into a humanoid warthog. Clumsy, oafish, and dim, he and Rocksteady serve as Shredder's bumbling muscle. Named after the jazz genre.","season":1},{"id":"ch-t10","name":"Rocksteady","role":"Henchman","tagline":"Mutant rhino","bio":"A former street-gang thug mutated by Shredder into a humanoid rhinoceros. Strong but slow-witted, he and Bebop constantly botch their attempts to defeat the Turtles.","season":1}],"batman-tas":[{"id":"ch-b1","name":"Batman / Bruce Wayne","role":"Hero","tagline":"The Dark Knight","bio":"Billionaire Bruce Wayne, who watched his parents gunned down as a child and swore war on Gotham's criminals. By night he becomes Batman, the World's Greatest Detective, protecting the city from the shadows.","season":1},{"id":"ch-b2","name":"Alfred Pennyworth","role":"Ally","tagline":"The loyal butler","bio":"Bruce Wayne's devoted butler, confidant, and surrogate father figure. Dry-witted and unflappable, he tends Wayne Manor, patches up Batman's wounds, and quietly keeps the whole operation running.","season":1},{"id":"ch-b3","name":"Commissioner Gordon","role":"Ally","tagline":"Gotham's honest cop","bio":"Commissioner James Gordon, the honest heart of the Gotham City Police Department. One of the few officials Batman trusts, he works with the Dark Knight to keep the city from falling to corruption and crime.","season":1},{"id":"ch-b4","name":"Harvey Bullock","role":"Ally","tagline":"The rumpled detective","bio":"A gruff, slovenly GCPD detective who distrusts Batman but is a dogged cop underneath the attitude. Loyal to Gordon, he does things his own rough way.","season":1},{"id":"ch-b5","name":"The Joker","role":"Villain","tagline":"The Clown Prince of Crime","bio":"Batman's ultimate nemesis: a cackling, homicidal madman with bleached skin and a permanent grin. Voiced unforgettably by Mark Hamill, he commits crimes for the sheer twisted joy of it.","season":1},{"id":"ch-b6","name":"Catwoman / Selina Kyle","role":"Villain","tagline":"The feline burglar","bio":"Selina Kyle, a cat-loving cat burglar who prowls Gotham's rooftops. A morally gray thief and sometime ally, she shares an electric, complicated attraction with Batman. Debuts in 'The Cat and the Claw.'","season":1},{"id":"ch-b7","name":"Two-Face / Harvey Dent","role":"Villain","tagline":"The man of two minds","bio":"Former DA Harvey Dent, Bruce Wayne's friend, whose face and mind were split by tragedy into a coin-flipping criminal. The series suggested his dual nature existed even before the acid — a genuinely tragic villain.","season":1},{"id":"ch-b8","name":"Mr. Freeze / Victor Fries","role":"Villain","tagline":"Cold and grieving","bio":"Victor Fries, a scientist transformed into a being who can only survive in sub-zero cold, waging an icy war after the loss of his wife Nora. His debut, 'Heart of Ice,' won an Emmy and redefined the character.","season":1},{"id":"ch-b9","name":"Poison Ivy / Pamela Isley","role":"Villain","tagline":"Eco-terrorist botanist","bio":"Dr. Pamela Isley, a botanist and eco-terrorist who wields toxins, and controls plants, and poisons with a kiss. She debuts in 'Pretty Poison,' targeting Harvey Dent over a paved-over rose garden.","season":1},{"id":"ch-b10","name":"The Penguin / Oswald Cobblepot","role":"Villain","tagline":"The gentleman of crime","bio":"Oswald Cobblepot, a short, beak-nosed crime lord with aristocratic airs and an arsenal of trick umbrellas. He fancies himself a refined gentleman even while running Gotham's underworld.","season":1},{"id":"ch-b11","name":"Mad Hatter / Jervis Tetch","role":"Villain","tagline":"Obsessed with Wonderland","bio":"Jervis Tetch, a lonely mind-control scientist obsessed with Alice in Wonderland. In 'Mad as a Hatter' he uses his hypnotic technology in a heartbreaking bid to win a woman who doesn't love him.","season":1},{"id":"ch-b12","name":"Clayface / Matt Hagen","role":"Villain","tagline":"The shapeshifting actor","bio":"Matt Hagen, a washed-up actor transformed into a shape-shifting mass of living clay after a disfiguring accident and a corporate cream. He can mimic anyone, a tragic monster introduced in 'Feat of Clay.'","season":1},{"id":"ch-b13","name":"Clock King / Temple Fugate","role":"Villain","tagline":"Punctuality and vengeance","bio":"Temple Fugate, an obsessively punctual efficiency expert whose life was ruined by a single missed schedule. He returns as a time-obsessed villain bent on revenge against Mayor Hill.","season":1},{"id":"ch-b14","name":"Rupert Thorne","role":"Villain","tagline":"The Gotham mob boss","bio":"A powerful, old-school Gotham crime boss who runs much of the city's organized crime. A recurring mob antagonist who tangles with both Batman and the costumed rogues.","season":1},{"id":"ch-b15","name":"Scarecrow / Jonathan Crane","role":"Villain","tagline":"Master of fear","bio":"Dr. Jonathan Crane, a disgraced psychologist obsessed with fear, who uses a fear-toxin to terrorize victims with their worst nightmares. Debuts stalking Batman in 'Nothing to Fear.'","season":1},{"id":"ch-b16","name":"Man-Bat / Kirk Langstrom","role":"Villain","tagline":"The tragic creature","bio":"Dr. Kirk Langstrom, a scientist whose serum to cure deafness mutates him into a monstrous man-bat. The very first BTAS episode, 'On Leather Wings,' introduces him as a tragic, misunderstood creature.","season":1}]};
+const CHAR_ROLES = ["Hero","Ally","Villain","Henchman"];
+const CHAR_ROLE_ICON = {Hero:"\u25C6",Ally:"\u2726",Villain:"\u2620",Henchman:"\u25AA"};
+function showHasChars(show){ return !!(CHARACTERS[show.id] && CHARACTERS[show.id].length); }
+
+// ---------- mood system (grouped vibes + intensity dials) ----------
+// Grouped "pick any" moods, organized by vibe.
+const MOOD_GROUPS = [
+  { group:"Humor",   moods:["Funny","Cheesy","Goofy","Witty","Cringe-good"] },
+  { group:"Feeling", moods:["Emotional","Heartwarming","Dark","Bittersweet","Nostalgic"] },
+  { group:"Energy",  moods:["Action-packed","Thrilling","Slow","Filler","Tense"] },
+  { group:"Flavor",  moods:["Weird","Clever","Iconic","Comfort watch","Rewatchable","Villain-heavy"] },
+];
+// Intensity dials (0-3). Kept short and show-agnostic.
+const MOOD_DIALS = [
+  { key:"fun",    label:"Funny" },
+  { key:"action", label:"Action" },
+  { key:"dark",   label:"Dark" },
+  { key:"feels",  label:"Feels" },
+];
+const DIAL_LEVELS = ["\u2013","Mild","Medium","Strong"]; // index 0..3
 const VERDICT_META = { love:{emo:"\uD83D\uDD25"}, like:{emo:"\uD83D\uDC4D"}, meh:{emo:"\uD83D\uDE10"}, nah:{emo:"\uD83D\uDC4E"} };
 const CODEX_TYPES = ["Villain","Ally","Gadget","Location","Other"];
 const CODEX_TYPE_ICON = {Villain:"\u2620",Ally:"\uD83E\uDD87",Gadget:"\u2699",Location:"\uD83D\uDCCD",Other:"\u25C6"};
@@ -553,6 +641,9 @@ let showTab="seasons"; // seasons | codex  (on show page)
 let cxFilter=null;   // codex type filter
 let cxEditing=null;  // entry being viewed in detail drawer
 let cxModalMode="new"; // new | edit
+let charState={};    // showId -> { favId:null, notes:{charId:text} }
+let charViewing=null; // {showId, charId} in detail drawer
+let charFilter=null;  // role filter on characters tab
 const rkey=(id,s,e)=>`${id}|${s}|${e}`;
 
 async function boot(){
@@ -571,8 +662,16 @@ async function boot(){
     if(!cx){ cx=JSON.parse(JSON.stringify(CODEX_SEED[id])); await sSet("rr:codex:"+id, cx); }
     codex[id]=cx;
   }
+  // load per-show character user data (favorite + notes)
+  for(const id of Object.keys(CHARACTERS)){
+    let cs=await sGet("rr:chars:"+id);
+    if(!cs) cs={favId:null,notes:{}};
+    charState[id]=cs;
+  }
   render();
 }
+async function saveCharState(showId){ await sSet("rr:chars:"+showId, charState[showId]||{favId:null,notes:{}}); }
+function charById(showId,cid){ return (CHARACTERS[showId]||[]).find(c=>c.id===cid); }
 async function saveCodex(showId){ await sSet("rr:codex:"+showId, codex[showId]||[]); }
 function codexEntry(showId,eid){ return (codex[showId]||[]).find(e=>e.id===eid); }
 // derive the episode appearances of an entry by scanning reviews
@@ -592,7 +691,7 @@ function setTheme(t){ document.body.setAttribute("data-theme", t||"shelf"); }
 
 // ---------- nav ----------
 function goHome(){ view={name:"home"}; setTheme("shelf"); render(); }
-async function openShow(id){ const d=await getShowData(id); view={name:"show",show:d}; showTab="seasons"; cxFilter=null; setTheme(d.theme||"shelf"); render(); }
+async function openShow(id){ const d=await getShowData(id); view={name:"show",show:d}; showTab="seasons"; cxFilter=null; charFilter=null; setTheme(d.theme||"shelf"); render(); }
 function openSeason(n){ view={name:"season",show:view.show,season:n}; render(); }
 
 function render(){
@@ -667,12 +766,19 @@ function renderShow(show){
   }).join("");
   const genres=(show.genres||[]).map(g=>`<span class="microtag">${g}</span>`).join(" ");
   const hasCx=showHasCodex(show);
+  const hasChars=showHasChars(show);
   const cxCount=(codex[show.id]||[]).length;
-  const tabs=hasCx?`<div class="tabs">
+  const chCount=(CHARACTERS[show.id]||[]).length;
+  const anyTabs = hasCx || hasChars;
+  const tabs=anyTabs?`<div class="tabs">
       <button class="tab ${showTab==='seasons'?'on':''}" data-tab="seasons">Seasons</button>
-      <button class="tab ${showTab==='codex'?'on':''}" data-tab="codex">Codex<span class="n">${cxCount}</span></button>
+      ${hasChars?`<button class="tab ${showTab==='characters'?'on':''}" data-tab="characters">Characters<span class="n">${chCount}</span></button>`:''}
+      ${hasCx?`<button class="tab ${showTab==='codex'?'on':''}" data-tab="codex">Codex<span class="n">${cxCount}</span></button>`:''}
     </div>`:'';
-  const body = (hasCx && showTab==='codex') ? renderCodexTab(show) : `
+  let body;
+  if(hasChars && showTab==='characters') body=renderCharactersTab(show);
+  else if(hasCx && showTab==='codex') body=renderCodexTab(show);
+  else body=`
     <div class="fieldlabel">Pick a season</div>
     <div class="season-strip">${strip}</div>`;
   return `
@@ -719,6 +825,83 @@ function renderCodexTab(show){
 }
 function escapeHtml(s){ return (s||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// ---------- characters tab ----------
+function renderCharactersTab(show){
+  const list=(CHARACTERS[show.id]||[]).slice();
+  const cs=charState[show.id]||{favId:null,notes:{}};
+  const rolesPresent=CHAR_ROLES.filter(r=>list.some(c=>c.role===r));
+  const filterPills=`<button class="pill ${!charFilter?'on':''}" data-charfilter="">All<span class="cnt">${list.length}</span></button>`+
+    rolesPresent.map(r=>`<button class="pill ${charFilter===r?'on':''}" data-charfilter="${r}">${r}<span class="cnt">${list.filter(c=>c.role===r).length}</span></button>`).join("");
+  let shown=charFilter?list.filter(c=>c.role===charFilter):list;
+  shown.sort((a,b)=>(CHAR_ROLES.indexOf(a.role)-CHAR_ROLES.indexOf(b.role))||a.name.localeCompare(b.name));
+  // favorite highlight banner
+  let favBanner="";
+  if(cs.favId){ const f=charById(show.id,cs.favId);
+    if(f) favBanner=`<div class="fav-banner"><span class="fav-star">\u2605</span><div><div class="fav-lbl">The one that caught your adoration</div><div class="fav-name">${escapeHtml(f.name)}</div></div></div>`; }
+  const cards=shown.map(c=>{
+    const isFav=cs.favId===c.id;
+    return `<div class="ch ${isFav?'isfav':''}" data-char="${c.id}">
+      <button class="ch-star ${isFav?'on':''}" data-charstar="${c.id}" title="${isFav?'Your favorite':'Mark as favorite'}">${isFav?'\u2605':'\u2606'}</button>
+      <div class="ch-role">${CHAR_ROLE_ICON[c.role]||''} ${c.role}</div>
+      <h4>${escapeHtml(c.name)}</h4>
+      <div class="ch-tag">${escapeHtml(c.tagline)}</div>
+    </div>`;
+  }).join("");
+  return `
+    <div class="sub" style="margin-top:4px">The Season 1 cast. Tap a character for their bio \u2014 and star the one that caught your adoration.</div>
+    ${favBanner}
+    <div class="cx-type-filter">${filterPills}</div>
+    <div class="char-grid">${cards}</div>`;
+}
+function toggleFav(showId, cid){
+  const cs=charState[showId]||(charState[showId]={favId:null,notes:{}});
+  cs.favId = (cs.favId===cid) ? null : cid;
+  saveCharState(showId);
+  // if detail drawer open for this show, refresh its star
+  if(charViewing && charViewing.showId===showId) syncCharDrawerStar();
+  render();
+}
+// character detail drawer
+function openChar(showId, cid){
+  const show=view.show; const c=charById(showId,cid); if(!c) return;
+  charViewing={showId,cid};
+  const cs=charState[showId]||{favId:null,notes:{}};
+  document.getElementById("chd-role").textContent=c.role;
+  document.getElementById("chd-name").textContent=c.name;
+  document.getElementById("chd-tag").textContent=c.tagline;
+  document.getElementById("chd-bio").textContent=c.bio;
+  syncCharDrawerStar();
+  // personal note
+  const note=(cs.notes&&cs.notes[cid])||"";
+  const ta=document.getElementById("chd-note"); ta.value=note;
+  ta.oninput=null;
+  document.getElementById("chd-saved").classList.remove("show");
+  // which S1 episodes this char is tagged in via codex? (Batman only, best-effort name match)
+  document.getElementById("ch-scrim").classList.add("open");
+  document.getElementById("ch-drawer").classList.add("open");
+  document.getElementById("ch-drawer").setAttribute("aria-hidden","false");
+}
+function syncCharDrawerStar(){
+  if(!charViewing) return;
+  const cs=charState[charViewing.showId]||{favId:null};
+  const isFav=cs.favId===charViewing.cid;
+  const btn=document.getElementById("chd-star");
+  btn.textContent=isFav?"\u2605 Your favorite":"\u2606 Mark as favorite";
+  btn.classList.toggle("on",isFav);
+}
+function toggleFavFromDrawer(){ if(charViewing) toggleFav(charViewing.showId, charViewing.cid); }
+async function saveCharNote(){
+  if(!charViewing) return;
+  const cs=charState[charViewing.showId]||(charState[charViewing.showId]={favId:null,notes:{}});
+  if(!cs.notes) cs.notes={};
+  const v=document.getElementById("chd-note").value;
+  if(v.trim()) cs.notes[charViewing.cid]=v; else delete cs.notes[charViewing.cid];
+  await saveCharState(charViewing.showId);
+  document.getElementById("chd-saved").classList.add("show");
+  setTimeout(()=>{ closeChar(); render(); },340);
+}
+function closeChar(){ document.getElementById("ch-scrim").classList.remove("open"); document.getElementById("ch-drawer").classList.remove("open"); document.getElementById("ch-drawer").setAttribute("aria-hidden","true"); charViewing=null; }
+
 // ---------- season ----------
 function verdictDot(v){ return v?`<span class="verdot" style="background:${verdictColor(v)}"></span>`:''; }
 function renderSeason(show,n){
@@ -762,9 +945,28 @@ function openReview(show,n,ep){
     b.onclick=()=>{ draft.verdict=draft.verdict===b.dataset.v?null:b.dataset.v;
       document.querySelectorAll("#d-verdict .vbtn").forEach(x=>x.classList.toggle("on",x.dataset.v===draft.verdict)); };
   });
+  if(!draft.dials) draft.dials={};
   const fc=document.getElementById("d-feelings");
-  fc.innerHTML=FEELINGS.map(f=>`<button class="feel ${draft.feelings.includes(f)?'on':''}" data-f="${f}">${f}</button>`).join("");
+  fc.innerHTML=MOOD_GROUPS.map(g=>`
+    <div class="moodgroup">
+      <div class="moodgroup-lbl">${g.group}</div>
+      <div class="feelings">${g.moods.map(f=>`<button class="feel ${draft.feelings.includes(f)?'on':''}" data-f="${f}">${f}</button>`).join("")}</div>
+    </div>`).join("");
   fc.querySelectorAll(".feel").forEach(b=>b.onclick=()=>{ const f=b.dataset.f,i=draft.feelings.indexOf(f); if(i>=0)draft.feelings.splice(i,1);else draft.feelings.push(f); b.classList.toggle("on"); });
+  // intensity dials
+  const dc=document.getElementById("d-dials");
+  dc.innerHTML=MOOD_DIALS.map(d=>{
+    const val=draft.dials[d.key]||0;
+    const segs=[0,1,2,3].map(n=>`<button class="dseg ${val===n?'on':''} ${n===0?'zero':''}" data-dial="${d.key}" data-val="${n}">${n===0?'\u2013':''}</button>`).join("");
+    return `<div class="dialrow"><div class="dial-label">${d.label}</div><div class="dial-track">${segs}</div><div class="dial-level" id="dlvl-${d.key}">${DIAL_LEVELS[val]}</div></div>`;
+  }).join("");
+  dc.querySelectorAll(".dseg").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.dial, n=parseInt(b.dataset.val);
+    draft.dials[k]=n;
+    const row=b.parentElement;
+    row.querySelectorAll(".dseg").forEach(s=>s.classList.toggle("on", parseInt(s.dataset.val)===n));
+    const lvl=document.getElementById("dlvl-"+k); if(lvl) lvl.textContent=DIAL_LEVELS[n];
+  });
   const rc=document.getElementById("d-rating"); rc.innerHTML="";
   for(let k=1;k<=10;k++){ const d=document.createElement("div"); d.className="rdot"+(draft.score===k?" on":""); d.textContent=k;
     d.onclick=()=>{ draft.score=draft.score===k?null:k; rc.querySelectorAll(".rdot").forEach((x,i)=>x.classList.toggle("on",draft.score===i+1)); }; rc.appendChild(d); }
@@ -796,7 +998,8 @@ function renderKW(){ const wrap=document.getElementById("d-kwwrap"); wrap.queryS
   draft.keywords.forEach((k,idx)=>{ const el=document.createElement("span"); el.className="kw"; el.innerHTML=`${k} <button aria-label="remove">✕</button>`;
     el.querySelector("button").onclick=(e)=>{ e.stopPropagation(); draft.keywords.splice(idx,1); renderKW(); }; wrap.insertBefore(el,input); }); }
 async function saveReview(){ if(!editing) return; const k=rkey(editing.showId,editing.s,editing.e);
-  const empty=!draft.verdict&&!draft.feelings.length&&!draft.keywords.length&&!draft.score&&!(draft.notes||"").trim()&&!(draft.codex&&draft.codex.length);
+  const anyDial=draft.dials&&Object.values(draft.dials).some(v=>v>0);
+  const empty=!draft.verdict&&!draft.feelings.length&&!draft.keywords.length&&!draft.score&&!(draft.notes||"").trim()&&!(draft.codex&&draft.codex.length)&&!anyDial;
   if(empty){ delete reviews[k]; await sDel("rr:rev:"+k); } else { draft.ts=Date.now(); reviews[k]=draft; await sSet("rr:rev:"+k,draft); }
   document.getElementById("d-saved").classList.add("show"); setTimeout(()=>{ closeDrawer(); render(); },380); }
 async function clearReview(){ if(!editing) return; const k=rkey(editing.showId,editing.s,editing.e); delete reviews[k]; await sDel("rr:rev:"+k); closeDrawer(); render(); }
@@ -892,8 +1095,12 @@ function wire(){
   document.querySelectorAll(".pill[data-cxfilter]").forEach(p=>p.onclick=()=>{ cxFilter=p.dataset.cxfilter||null; render(); });
   document.querySelectorAll(".cx[data-cx]").forEach(c=>c.onclick=()=>openCodex(view.show.id, c.dataset.cx));
   const cxAdd=document.getElementById("cxAddBtn"); if(cxAdd) cxAdd.onclick=()=>{ cxEditing=null; openCodexModal("new",null); };
+  // characters
+  document.querySelectorAll(".pill[data-charfilter]").forEach(p=>p.onclick=()=>{ charFilter=p.dataset.charfilter||null; render(); });
+  document.querySelectorAll(".ch-star[data-charstar]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); toggleFav(view.show.id, b.dataset.charstar); });
+  document.querySelectorAll(".ch[data-char]").forEach(c=>c.onclick=()=>openChar(view.show.id, c.dataset.char));
 }
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeDrawer(); closeModal(); closeCodex(); closeCodexModal(); } });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeDrawer(); closeModal(); closeCodex(); closeCodexModal(); closeChar(); } });
 
 /* ---- expose inline-onclick handlers (module scope isn't global) ---- */
 Object.assign(window, {
@@ -901,7 +1108,8 @@ Object.assign(window, {
   saveReview, clearReview, closeDrawer,
   openModal, closeModal, addShow,
   openCodex, closeCodex, saveCodexNote, editCodexEntry, deleteCodexEntry,
-  openCodexModal, closeCodexModal, saveCodexEntry
+  openCodexModal, closeCodexModal, saveCodexEntry,
+  openChar, closeChar, saveCharNote, toggleFavFromDrawer
 });
 
 /* ===========================================================================
