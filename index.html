@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1013">
+<title>Rerun</title>
+<style>
+/* ============ base ============ */
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font-body,"DejaVu Sans","Trebuchet MS",system-ui,sans-serif);
+    -webkit-font-smoothing:antialiased;min-height:100vh;
+    background:var(--bg,#0a0f0c);color:var(--cream,#f3efe2);
+    transition:background .35s ease,color .35s ease;
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition-duration:.001s!important} }
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px 90px}
+
+  /* ============ THEME: shelf (home / neutral) ============ */
+  body[data-theme="shelf"]{
+    --bg:#0e1013; --panel:#171a20; --panel-2:#1e222a; --line:#2a2f3a;
+    --accent:#8fb4ff; --accent-2:#c9d6ff; --accent-ink:#0a1120; --mute:#8892a4; --cream:#eef1f6;
+    --red:#ff6b7a; --font-display:"DejaVu Serif",Georgia,serif; --font-body:"DejaVu Sans",system-ui,sans-serif;
+    --tex:none;
+  }
+  /* ============ THEME: TMNT ============ */
+  body[data-theme="tmnt"]{
+    --bg:#0a0f0c; --panel:#101a14; --panel-2:#16241c; --line:#233a2c;
+    --accent:#3ddc84; --accent-2:#ff8a3d; --accent-ink:#062012; --mute:#7f9a88; --cream:#f3efe2;
+    --red:#ff5d6c; --purple:#9b6cff;
+    --font-display:"DejaVu Sans","Trebuchet MS",sans-serif; --font-body:"DejaVu Sans",system-ui,sans-serif;
+    --tex:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.055) 2px 3px);
+    --tex-blend:multiply;
+  }
+  /* ============ THEME: Batman ============ */
+  body[data-theme="batman"]{
+    --bg:#050608; --panel:#0d0f14; --panel-2:#12151d; --line:#20242f;
+    --accent:#f4c542; --accent-2:#8a94a6; --accent-ink:#100b00; --mute:#6a7183; --cream:#dfe3ea;
+    --red:#c8433a; --purple:#6d78ff;
+    --font-display:"DejaVu Serif",Georgia,"Times New Roman",serif; --font-body:"DejaVu Sans",system-ui,sans-serif;
+    --tex:radial-gradient(120% 80% at 50% -10%, rgba(244,197,66,.05), transparent 55%);
+    --tex-blend:screen;
+  }
+
+  /* atmosphere layer per-theme */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:var(--atmos,transparent);opacity:.9;transition:background .35s;
+  }
+  body[data-theme="tmnt"]{--atmos:
+    radial-gradient(1200px 600px at 80% -10%, rgba(61,220,132,.10), transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, rgba(155,108,255,.10), transparent 55%);}
+  body[data-theme="batman"]{--atmos:
+    radial-gradient(1000px 520px at 50% -5%, rgba(244,197,66,.09), transparent 55%),
+    radial-gradient(700px 700px at 100% 100%, rgba(40,46,66,.5), transparent 60%);}
+  body[data-theme="shelf"]{--atmos:
+    radial-gradient(1000px 500px at 85% -10%, rgba(143,180,255,.10), transparent 60%);}
+
+  /* texture overlay (scanlines for tmnt) */
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:998;
+    background:var(--tex,none);mix-blend-mode:var(--tex-blend,normal);
+  }
+
+  .wrap, header.top{position:relative;z-index:1}
+
+  /* ============ header ============ */
+  header.top{
+    position:sticky;top:0;z-index:50;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(7px);border-bottom:1px solid var(--line);transition:background .35s,border-color .35s;
+  }
+  .top-inner{max-width:1080px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;gap:14px}
+  .logo{font-weight:800;letter-spacing:.06em;font-size:21px;line-height:1;cursor:pointer;user-select:none;
+    display:flex;align-items:center;gap:9px;text-transform:uppercase}
+  .logo .mark{width:22px;height:22px;flex:none;position:relative}
+  .logo .mark i{position:absolute;inset:0;border:2.5px solid var(--accent);border-radius:6px}
+  .logo .mark i:nth-child(2){inset:5px;border-color:var(--accent-2);border-radius:3px;opacity:.8}
+  .logo b{font-weight:800}
+  .logo .b2{color:var(--accent)}
+  .tagline{color:var(--mute);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase}
+  .spacer{flex:1}
+
+  /* ============ crumbs / headings ============ */
+  .crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin:22px 0 6px}
+  .crumbs b{color:var(--cream);font-weight:600}
+  .crumbs .sep{opacity:.5}
+  .crumb-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:0;font-family:inherit}
+  .crumb-btn:hover{text-decoration:underline}
+
+  h1.page{font-family:var(--font-display);font-size:34px;margin:6px 0 2px;letter-spacing:.005em;font-weight:800;line-height:1.05}
+  .sub{color:var(--mute);font-size:14px;margin-bottom:18px}
+  .fieldlabel{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:22px 0 10px}
+  .fieldlabel:first-child{margin-top:0}
+
+  /* ============ pills ============ */
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 26px}
+  .pill{border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:999px;
+    padding:7px 14px;font-size:12.5px;letter-spacing:.03em;cursor:pointer;transition:.15s;font-family:inherit;
+    display:inline-flex;align-items:center;gap:7px}
+  .pill:hover{border-color:var(--accent)}
+  .pill.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+  .pill .cnt{opacity:.55;font-size:11px}
+  .pill.on .cnt{opacity:.8}
+
+  /* ============ show cards ============ */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+  .card{position:relative;border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));padding:18px;cursor:pointer;transition:.16s;overflow:hidden}
+  .card:hover{transform:translateY(-3px)}
+  .card[data-t="tmnt"]{--cardglow:rgba(61,220,132,.55)}
+  .card[data-t="batman"]{--cardglow:rgba(244,197,66,.45)}
+  .card[data-t="shelf"]{--cardglow:rgba(143,180,255,.4)}
+  .card:hover{border-color:color-mix(in srgb, var(--cardglow) 70%, var(--line));box-shadow:0 14px 34px -18px var(--cardglow)}
+  .card .badge{position:absolute;top:0;right:0;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    padding:5px 10px;border-bottom-left-radius:12px;font-weight:700}
+  .card[data-t="tmnt"] .badge{background:linear-gradient(90deg,#1f9e5a,#3ddc84);color:#062012}
+  .card[data-t="batman"] .badge{background:linear-gradient(90deg,#3a3320,#f4c542);color:#100b00}
+  .card[data-t="shelf"] .badge{background:var(--accent);color:var(--accent-ink)}
+  .card .yr{font-size:11px;letter-spacing:.16em;color:var(--accent-2);text-transform:uppercase;margin-top:4px}
+  .card h3{font-family:var(--font-display);margin:8px 0 10px;font-size:21px;line-height:1.08;font-weight:800;max-width:88%}
+  .card .meta{font-size:12px;color:var(--mute)}
+  .card .tagrow{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
+  .microtag{font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 7px;color:var(--mute)}
+  .card .prog{margin-top:14px}
+  .bar{height:7px;border-radius:99px;background:rgba(0,0,0,.35);border:1px solid var(--line);overflow:hidden}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 60%,#000),var(--accent))}
+  .prog small{display:block;margin-top:6px;font-size:11px;color:var(--mute)}
+  .addcard{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+    border-style:dashed;color:var(--mute);min-height:160px;text-align:center}
+  .addcard .plus{font-size:30px;color:var(--accent)}
+  .addcard span{font-size:12.5px;max-width:170px}
+
+  /* ============ season strip ============ */
+  .season-strip{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 22px}
+  .seasonbtn{border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:10px;
+    padding:9px 13px;cursor:pointer;font-family:inherit;font-size:13px;transition:.15s;min-width:52px;text-align:center}
+  .seasonbtn small{display:block;font-size:10px;color:var(--mute);margin-top:2px}
+  .seasonbtn:hover{border-color:var(--accent)}
+  .seasonbtn.on{background:var(--accent-2);color:var(--accent-ink);border-color:var(--accent-2);font-weight:700}
+  .seasonbtn.on small{color:var(--accent-ink);opacity:.7}
+  .seasonbtn.wide{min-width:auto}
+
+  .stat-row{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 24px}
+  .stat{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:12px 16px;min-width:92px}
+  .stat b{display:block;font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--accent)}
+  .stat span{font-size:11px;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+
+  /* ============ episodes ============ */
+  .eplist{display:flex;flex-direction:column;gap:9px}
+  .ep{display:flex;align-items:center;gap:14px;border:1px solid var(--line);background:var(--panel);
+    border-radius:12px;padding:12px 14px;cursor:pointer;transition:.14s}
+  .ep:hover{border-color:var(--accent);background:var(--panel-2)}
+  .ep .num{flex:none;width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:14px;background:rgba(0,0,0,.3);border:1px solid var(--line);color:var(--mute)}
+  .ep.rated .num{color:var(--cream)}
+  .ep .body{flex:1;min-width:0}
+  .ep .t{font-weight:600;font-size:15px}
+  .ep .s{font-size:11.5px;color:var(--mute);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .ep .verdict{font-size:18px;flex:none;width:30px;text-align:center}
+  .ep .chiprow{display:flex;gap:5px;flex-wrap:wrap}
+  .ep .chiprow em{font-style:normal;font-size:10px;border-radius:5px;padding:2px 6px;background:rgba(0,0,0,.3);border:1px solid var(--line);color:var(--mute)}
+  .verdot{width:9px;height:9px;border-radius:99px;display:inline-block}
+
+  /* ============ drawer ============ */
+  .scrim{position:fixed;inset:0;background:rgba(2,3,4,.72);z-index:200;opacity:0;pointer-events:none;transition:.2s}
+  .scrim.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;z-index:201;right:0;top:0;height:100%;width:min(460px,100%);
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));border-left:1px solid var(--line);
+    transform:translateX(100%);transition:transform .24s cubic-bezier(.3,.8,.3,1);display:flex;flex-direction:column}
+  .drawer.open{transform:none}
+  .drawer .dhead{padding:20px 20px 14px;border-bottom:1px solid var(--line)}
+  .drawer .eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-2)}
+  .drawer h2{font-family:var(--font-display);margin:6px 0 0;font-size:22px;line-height:1.15;font-weight:800}
+  .drawer .dbody{padding:20px;overflow-y:auto;flex:1}
+  .drawer .x{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--line);color:var(--cream);
+    width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:16px;line-height:1}
+  .drawer .x:hover{border-color:var(--red);color:var(--red)}
+
+  .verdict-row{display:flex;gap:10px}
+  .vbtn{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:14px 6px;cursor:pointer;
+    font-family:inherit;color:var(--cream);transition:.14s;text-align:center}
+  .vbtn .emo{font-size:24px;display:block}
+  .vbtn .lbl{font-size:11px;color:var(--mute);margin-top:5px;letter-spacing:.03em}
+  .vbtn:hover{border-color:var(--accent)}
+  .vbtn.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .vbtn.on[data-v="meh"]{background:var(--mute);border-color:var(--mute);color:var(--accent-ink)}
+  .vbtn.on[data-v="nah"]{background:var(--red);border-color:var(--red);color:#fff}
+  .vbtn.on .lbl{color:inherit;opacity:.85}
+
+  .feelings{display:flex;flex-wrap:wrap;gap:8px}
+  .feel{border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:999px;
+    padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:.13s}
+  .feel:hover{border-color:var(--accent-2)}
+  .feel.on{background:var(--accent-2);color:var(--accent-ink);border-color:var(--accent-2);font-weight:700}
+
+  .kwwrap{display:flex;flex-wrap:wrap;gap:7px;align-items:center;border:1px solid var(--line);background:var(--panel);
+    border-radius:12px;padding:9px;min-height:46px}
+  .kw{background:var(--accent);color:var(--accent-ink);border-radius:7px;padding:4px 9px;font-size:12.5px;font-weight:600;
+    display:inline-flex;gap:6px;align-items:center}
+  .kw button{background:none;border:none;color:var(--accent-ink);cursor:pointer;font-size:13px;padding:0;line-height:1;font-weight:800}
+  .kwwrap input{flex:1;min-width:110px;background:none;border:none;outline:none;color:var(--cream);font-family:inherit;font-size:14px;padding:4px}
+
+  textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--cream);
+    font-family:inherit;font-size:14px;padding:12px;min-height:96px;resize:vertical;outline:none}
+  textarea:focus,.kwwrap:focus-within{border-color:var(--accent)}
+
+  .rating10{display:flex;gap:5px;flex-wrap:wrap}
+  .rdot{width:30px;height:34px;border:1px solid var(--line);background:var(--panel);border-radius:8px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mute);font-weight:700;transition:.1s}
+  .rdot:hover{border-color:var(--accent)}
+  .rdot.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+  .drawer .dfoot{padding:16px 20px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+  .btn{border:none;border-radius:11px;padding:13px 18px;font-family:inherit;font-weight:700;cursor:pointer;font-size:14px;transition:.14s}
+  .btn.save{background:var(--accent);color:var(--accent-ink);flex:1}
+  .btn.save:hover{filter:brightness(1.08)}
+  .btn.ghost{background:none;border:1px solid var(--line);color:var(--mute)}
+  .btn.ghost:hover{color:var(--red);border-color:var(--red)}
+  .saved-note{font-size:11px;color:var(--accent);opacity:0;transition:.2s}
+  .saved-note.show{opacity:1}
+
+  .search{margin:0 0 20px;position:relative}
+  .search input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--cream);
+    font-family:inherit;font-size:14px;padding:12px 14px 12px 40px;outline:none}
+  .search input:focus{border-color:var(--accent)}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.5}
+
+  .empty{color:var(--mute);text-align:center;padding:60px 20px;border:1px dashed var(--line);border-radius:16px}
+
+  .modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,3,4,.75)}
+  .modal.open{display:flex}
+  .modalbox{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:18px;width:min(440px,100%);padding:22px}
+  .modalbox h3{font-family:var(--font-display);margin:0 0 4px;font-size:20px}
+  .modalbox p{margin:0 0 4px;color:var(--mute);font-size:13px}
+  .modalbox label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:block;margin:14px 0 6px}
+  .modalbox input,.modalbox select{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--cream);font-family:inherit;font-size:14px;padding:11px;outline:none}
+  .modalbox input:focus,.modalbox select:focus{border-color:var(--accent)}
+  .themepick{display:flex;gap:8px;margin-top:6px}
+  .themeopt{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;text-align:center;font-size:12px;transition:.14s}
+  .themeopt:hover{border-color:var(--accent)}
+  .themeopt.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .swatch{height:16px;border-radius:5px;margin-bottom:6px}
+
+  /* ============ tabs (season / codex) ============ */
+  .tabs{display:flex;gap:6px;margin:4px 0 22px;border-bottom:1px solid var(--line)}
+  .tab{background:none;border:none;font-family:inherit;color:var(--mute);cursor:pointer;font-size:14px;
+    padding:11px 4px;margin-right:18px;border-bottom:2px solid transparent;transition:.14s;letter-spacing:.02em}
+  .tab:hover{color:var(--cream)}
+  .tab.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+  .tab .n{font-size:11px;color:var(--mute);margin-left:5px}
+
+  /* ============ codex ============ */
+  .codex-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .codex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .cx{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border-radius:14px;padding:15px;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+  .cx:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .cx .cx-type{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent-2)}
+  .cx h4{font-family:var(--font-display);margin:6px 0 8px;font-size:18px;font-weight:800;line-height:1.1}
+  .cx .cx-count{font-size:12px;color:var(--mute)}
+  .cx .cx-note{font-size:12px;color:var(--mute);margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .cx .cx-dot{position:absolute;top:14px;right:14px;font-size:15px}
+  .cx-add{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;border-style:dashed;color:var(--mute);min-height:110px;text-align:center}
+  .cx-add .plus{font-size:26px;color:var(--accent)}
+  .cx-type-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+
+  /* codex entry detail (uses drawer) */
+  .cx-metaline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:2px}
+  .cx-badge{font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:var(--accent-2);color:var(--accent-ink);font-weight:700}
+  .cx-eps{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+  .cx-eprow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:9px 11px;font-size:13px}
+  .cx-eprow .deb{font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);padding:2px 6px;border-radius:5px;font-weight:800}
+  .cx-eprow .loc{color:var(--mute);font-size:11px}
+  .cx-empty{color:var(--mute);font-size:13px;border:1px dashed var(--line);border-radius:10px;padding:16px;text-align:center}
+  select.field{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--cream);font-family:inherit;font-size:14px;padding:11px;outline:none}
+  select.field:focus{border-color:var(--accent)}
+  input.field{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--cream);font-family:inherit;font-size:14px;padding:11px;outline:none}
+  input.field:focus{border-color:var(--accent)}
+
+  /* appears-in tagger inside review drawer */
+  .appears{display:flex;flex-wrap:wrap;gap:7px}
+  .app{border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:999px;padding:6px 11px;font-size:12px;cursor:pointer;font-family:inherit;transition:.13s;display:inline-flex;gap:6px;align-items:center}
+  .app:hover{border-color:var(--accent-2)}
+  .app.on{background:var(--accent-2);color:var(--accent-ink);border-color:var(--accent-2);font-weight:700}
+  .app .ty{font-size:9px;opacity:.6;letter-spacing:.08em;text-transform:uppercase}
+  .appears-empty{font-size:12px;color:var(--mute)}
+
+  footer.foot{color:var(--mute);font-size:11px;text-align:center;margin-top:40px;letter-spacing:.05em}
+
+  @media (max-width:560px){
+    h1.page{font-size:27px}
+    .ep .num{width:40px;height:40px;font-size:13px}
+    .drawer{width:100%}
+  }
+  /* ============ auth gate ============ */
+  #authgate{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(1000px 520px at 50% -5%, rgba(244,197,66,.06), transparent 55%), #070a0c}
+  #authgate.hide{display:none}
+  .authcard{max-width:360px;width:100%;text-align:center}
+  .authcard .brand{font-weight:800;letter-spacing:.06em;font-size:34px;text-transform:uppercase;margin-bottom:6px}
+  .authcard .brand b2{color:#3ddc84}
+  .authcard .brand .b2{color:#3ddc84}
+  .authcard p{color:#8892a4;font-size:14px;margin:0 0 26px;line-height:1.5}
+  .gbtn{display:inline-flex;align-items:center;gap:11px;background:#fff;color:#1f2430;border:none;border-radius:12px;
+    padding:13px 20px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:.14s;box-shadow:0 8px 24px -12px rgba(0,0,0,.7)}
+  .gbtn:hover{transform:translateY(-1px);box-shadow:0 12px 28px -12px rgba(0,0,0,.8)}
+  .gbtn svg{width:19px;height:19px;flex:none}
+  .autherr{color:#ff6b7a;font-size:12.5px;margin-top:16px;min-height:16px}
+  .authnote{color:#5a6373;font-size:11px;margin-top:22px}
+  /* header user chip */
+  .userchip{display:flex;align-items:center;gap:9px}
+  .userchip img{width:26px;height:26px;border-radius:50%;border:1px solid var(--line)}
+  .signout{background:none;border:1px solid var(--line);color:var(--mute);border-radius:8px;padding:6px 11px;
+    font-family:inherit;font-size:12px;cursor:pointer;transition:.14s}
+  .signout:hover{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body data-theme="shelf">
+
+<div id="authgate">
+  <div class="authcard">
+    <div class="brand"><b>Re</b><span class="b2">run</span></div>
+    <p>Your personal watch log. Sign in with Google to sync your reviews across devices.</p>
+    <button class="gbtn" id="googleBtn">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="autherr" id="autherr"></div>
+    <div class="authnote">Private to your Google account.</div>
+  </div>
+</div>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="logo" onclick="goHome()">
+      <span class="mark"><i></i><i></i></span>
+      <span><b>Re</b><b class="b2">run</b></span>
+    </div>
+    <span class="tagline">watch log</span>
+    <div class="spacer"></div>
+    <div class="userchip" id="userchip" style="display:none"></div>
+  </div>
+</header>
+<div class="wrap" id="app"></div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <button class="x" onclick="closeDrawer()" aria-label="Close">✕</button>
+  <div class="dhead"><div class="eyebrow" id="d-eyebrow"></div><h2 id="d-title"></h2></div>
+  <div class="dbody">
+    <div class="fieldlabel">Verdict</div>
+    <div class="verdict-row" id="d-verdict">
+      <button class="vbtn" data-v="love"><span class="emo">🔥</span><span class="lbl" id="lbl-love">Loved it</span></button>
+      <button class="vbtn" data-v="like"><span class="emo">👍</span><span class="lbl">Liked</span></button>
+      <button class="vbtn" data-v="meh"><span class="emo">😐</span><span class="lbl">Meh</span></button>
+      <button class="vbtn" data-v="nah"><span class="emo">👎</span><span class="lbl">Not for me</span></button>
+    </div>
+    <div class="fieldlabel">How it felt <span style="text-transform:none;letter-spacing:0">(tap any)</span></div>
+    <div class="feelings" id="d-feelings"></div>
+    <div class="fieldlabel">Score <span style="text-transform:none;letter-spacing:0">(optional)</span></div>
+    <div class="rating10" id="d-rating"></div>
+    <div class="fieldlabel">Keywords <span style="text-transform:none;letter-spacing:0">(type + Enter)</span></div>
+    <div class="kwwrap" id="d-kwwrap" onclick="document.getElementById('d-kwinput').focus()">
+      <input id="d-kwinput" placeholder="a character, a gag, a moment…" autocomplete="off">
+    </div>
+    <div class="fieldlabel" id="d-appears-label" style="display:none">Appears in this episode <span style="text-transform:none;letter-spacing:0">(from the codex)</span></div>
+    <div class="appears" id="d-appears"></div>
+    <div class="fieldlabel">Notes / thoughts</div>
+    <textarea id="d-notes" placeholder="A line or two — a moment you loved, where you watched, whatever."></textarea>
+  </div>
+  <div class="dfoot">
+    <button class="btn save" onclick="saveReview()">Save review</button>
+    <button class="btn ghost" onclick="clearReview()">Clear</button>
+    <span class="saved-note" id="d-saved">Saved ✓</span>
+  </div>
+</aside>
+
+<div class="modal" id="modal">
+  <div class="modalbox">
+    <h3>Add a show</h3>
+    <p>Shelf a new title. Episodes can come later — it just needs a name.</p>
+    <label>Title</label>
+    <input id="m-title" placeholder="e.g. Gargoyles" autocomplete="off">
+    <label>Year</label>
+    <input id="m-year" placeholder="e.g. 1994" autocomplete="off">
+    <label>Genres (comma separated)</label>
+    <input id="m-genres" placeholder="Animation, Action" autocomplete="off">
+    <label>Theme</label>
+    <div class="themepick" id="m-themepick">
+      <div class="themeopt on" data-theme="shelf"><div class="swatch" style="background:linear-gradient(90deg,#8fb4ff,#c9d6ff)"></div>Neutral</div>
+      <div class="themeopt" data-theme="tmnt"><div class="swatch" style="background:linear-gradient(90deg,#1f9e5a,#3ddc84)"></div>Neon</div>
+      <div class="themeopt" data-theme="batman"><div class="swatch" style="background:linear-gradient(90deg,#3a3320,#f4c542)"></div>Noir</div>
+    </div>
+    <div class="dfoot" style="border:none;padding:20px 0 0">
+      <button class="btn save" onclick="addShow()">Add to shelf</button>
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- codex entry detail drawer -->
+<div class="scrim" id="cx-scrim" onclick="closeCodex()"></div>
+<aside class="drawer" id="cx-drawer" aria-hidden="true">
+  <button class="x" onclick="closeCodex()" aria-label="Close">✕</button>
+  <div class="dhead">
+    <div class="cx-metaline"><span class="cx-badge" id="cx-badge"></span><span class="eyebrow" id="cx-debut"></span></div>
+    <h2 id="cx-name"></h2>
+  </div>
+  <div class="dbody">
+    <div class="fieldlabel">From the guide <span style="text-transform:none;letter-spacing:0">(your notes)</span></div>
+    <textarea id="cx-notes" placeholder="Copy a fact from the Beatty guide — origin, real name, first appearance, a bit of trivia…"></textarea>
+    <div class="fieldlabel" id="cx-eps-label">Appears in</div>
+    <div class="cx-eps" id="cx-eps"></div>
+  </div>
+  <div class="dfoot">
+    <button class="btn save" onclick="saveCodexNote()">Save</button>
+    <button class="btn ghost" onclick="editCodexEntry()">Edit</button>
+    <button class="btn ghost" onclick="deleteCodexEntry()">Delete</button>
+    <span class="saved-note" id="cx-saved">Saved ✓</span>
+  </div>
+</aside>
+
+<!-- add/edit codex entry modal -->
+<div class="modal" id="cx-modal">
+  <div class="modalbox">
+    <h3 id="cxm-title">New codex entry</h3>
+    <p>A character, gadget, or place you want to track across episodes.</p>
+    <label>Name</label>
+    <input class="field" id="cxm-name" placeholder="e.g. Mr. Freeze" autocomplete="off">
+    <label>Type</label>
+    <select class="field" id="cxm-type">
+      <option value="Villain">Villain</option>
+      <option value="Ally">Ally</option>
+      <option value="Gadget">Gadget / Vehicle</option>
+      <option value="Location">Location</option>
+      <option value="Other">Other</option>
+    </select>
+    <div class="dfoot" style="border:none;padding:20px 0 0">
+      <button class="btn save" onclick="saveCodexEntry()">Save entry</button>
+      <button class="btn ghost" onclick="closeCodexModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="boot-status" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;color:var(--mute);font-size:11px;pointer-events:none"></div>
+
+<div id="boot-status" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;color:var(--mute);font-size:11px;pointer-events:none"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===========================================================================
+   FIREBASE CONFIG  --  paste your project's values here.
+   Firebase console -> Project settings -> your Web app -> config object.
+   (These values are meant to live in the browser; your data is protected by
+   Firestore security rules, not by hiding this config.)
+   =========================================================================== */
+const firebaseConfig = {
+  apiKey: "REPLACE_ME",
+  authDomain: "REPLACE_ME.firebaseapp.com",
+  projectId: "REPLACE_ME",
+  storageBucket: "REPLACE_ME.appspot.com",
+  messagingSenderId: "REPLACE_ME",
+  appId: "REPLACE_ME"
+};
+
+/* ---- Firebase init ---- */
+const fbApp = initializeApp(firebaseConfig);
+const auth  = getAuth(fbApp);
+const db    = getFirestore(fbApp);
+const provider = new GoogleAuthProvider();
+let uid = null;
+
+/* ===========================================================================
+   STORAGE LAYER  --  same sGet/sSet/sDel/sList interface the app uses,
+   backed by Firestore at users/{uid}/kv/{encodedKey}.
+   =========================================================================== */
+const keyToId = (k)=>encodeURIComponent(k);
+const userDoc = (k)=>doc(db,"users",uid,"kv",keyToId(k));
+const userCol = ()=>collection(db,"users",uid,"kv");
+
+async function sGet(key){
+  try{ const s=await getDoc(userDoc(key)); return s.exists()?s.data().v:null; }
+  catch(e){ console.error("sGet",key,e); return null; }
+}
+async function sSet(key,value){
+  try{ await setDoc(userDoc(key),{k:key,v:value}); }
+  catch(e){ console.error("sSet",key,e); }
+}
+async function sDel(key){
+  try{ await deleteDoc(userDoc(key)); }
+  catch(e){ console.error("sDel",key,e); }
+}
+async function sList(prefix){
+  try{ const snap=await getDocs(userCol()); const out=[];
+    snap.forEach(d=>{ const k=d.data().k; if(k&&(!prefix||k.startsWith(prefix))) out.push(k); });
+    return out; }
+  catch(e){ console.error("sList",prefix,e); return []; }
+}
+
+/* ===========================================================================
+   SEED DATA + CONSTANTS
+   =========================================================================== */
+// ---------------------------------------------------------------------------
+// data.js — seed content for Rerun (shows, episodes, codex starters)
+// This is static reference data. Your personal reviews/notes live in Firestore.
+// ---------------------------------------------------------------------------
+
+const SEED = [{"id":"tmnt-1987","title":"Teenage Mutant Ninja Turtles","year":1987,"endYear":1996,"genres":["Animation","Action","Comedy","Sci-Fi","Kids"],"owned":"Apple TV (digital)","theme":"tmnt","seasons":[{"season":1,"episodes":[{"e":1,"overall":1,"title":"Turtle Tracks"},{"e":2,"overall":2,"title":"Enter the Shredder"},{"e":3,"overall":3,"title":"A Thing About Rats"},{"e":4,"overall":4,"title":"Hot-Rodding Teenagers from Dimension X"},{"e":5,"overall":5,"title":"Shredder & Splintered"}]},{"season":2,"episodes":[{"e":1,"overall":6,"title":"Return of the Shredder"},{"e":2,"overall":7,"title":"The Incredible Shrinking Turtles"},{"e":3,"overall":8,"title":"It Came from Beneath the Sewers"},{"e":4,"overall":9,"title":"The Mean Machines"},{"e":5,"overall":10,"title":"Curse of the Evil Eye"},{"e":6,"overall":11,"title":"The Case of the Killer Pizzas"},{"e":7,"overall":12,"title":"Enter: The Fly"},{"e":8,"overall":13,"title":"Invasion of the Punk Frogs"},{"e":9,"overall":14,"title":"New York's Shiniest"},{"e":10,"overall":15,"title":"Splinter No More"},{"e":11,"overall":16,"title":"Teenagers from Dimension X"},{"e":12,"overall":17,"title":"The Catwoman from Channel Six"},{"e":13,"overall":18,"title":"Return of the Technodrome"}]},{"season":3,"episodes":[{"e":1,"overall":19,"title":"Beneath These Streets"},{"e":2,"overall":20,"title":"Turtles on Trial"},{"e":3,"overall":21,"title":"Attack of the 50 Foot Irma"},{"e":4,"overall":22,"title":"The Maltese Hamster"},{"e":5,"overall":23,"title":"Sky Turtles"},{"e":6,"overall":24,"title":"The Old Switcheroo"},{"e":7,"overall":25,"title":"Burne's Blues"},{"e":8,"overall":26,"title":"The Fifth Turtle"},{"e":9,"overall":27,"title":"Enter the Rat King"},{"e":10,"overall":28,"title":"Turtles at the Earth's Core"},{"e":11,"overall":29,"title":"April's Fool"},{"e":12,"overall":30,"title":"Attack of Big MACC"},{"e":13,"overall":31,"title":"The Ninja Sword of Nowhere"},{"e":14,"overall":32,"title":"20,000 Leaks Under the City"},{"e":15,"overall":33,"title":"Take Me to Your Leader"},{"e":16,"overall":34,"title":"The Four Musketurtles"},{"e":17,"overall":35,"title":"Turtles, Turtles Everywhere"},{"e":18,"overall":36,"title":"Cowabunga Shredhead"},{"e":19,"overall":37,"title":"Invasion of the Turtle Snatchers"},{"e":20,"overall":38,"title":"Camera Bugged"},{"e":21,"overall":39,"title":"Green with Jealousy"},{"e":22,"overall":40,"title":"Return of the Fly"},{"e":23,"overall":41,"title":"Casey Jones: Outlaw Hero"},{"e":24,"overall":42,"title":"Mutagen Monster"},{"e":25,"overall":43,"title":"Corporate Raiders from Dimension X"},{"e":26,"overall":44,"title":"Pizza by the Shred"},{"e":27,"overall":45,"title":"Super Bebop and Mighty Rocksteady"},{"e":28,"overall":46,"title":"Beware the Lotus"},{"e":29,"overall":47,"title":"Blast from the Past"},{"e":30,"overall":48,"title":"Leatherhead: Terror of the Swamp"},{"e":31,"overall":49,"title":"Michaelangelo's Birthday"},{"e":32,"overall":50,"title":"Usagi Yojimbo"},{"e":33,"overall":51,"title":"Case of the Hot Kimono"},{"e":34,"overall":52,"title":"Usagi Come Home"},{"e":35,"overall":53,"title":"The Making of Metalhead"},{"e":36,"overall":54,"title":"Leatherhead Meets the Rat King"},{"e":37,"overall":55,"title":"The Turtle Terminator"},{"e":38,"overall":56,"title":"The Great Boldini"},{"e":39,"overall":57,"title":"The Grybyx"},{"e":40,"overall":58,"title":"The Missing Map"},{"e":41,"overall":59,"title":"The Gang's All Here"},{"e":42,"overall":60,"title":"Mister Ogg Goes to Town"},{"e":43,"overall":61,"title":"Shredderville"},{"e":44,"overall":62,"title":"Bye, Bye, Fly"},{"e":45,"overall":63,"title":"The Big Rip-Off"},{"e":46,"overall":64,"title":"The Big Break-In"},{"e":47,"overall":65,"title":"The Big Blow Out"}]},{"season":4,"episodes":[{"e":1,"overall":66,"title":"The Dimension X Story"},{"e":2,"overall":67,"title":"Return of the Technodrome (Part 1)"},{"e":3,"overall":68,"title":"Plan Six from Outer Space"},{"e":4,"overall":69,"title":"Turtles of the Jungle"},{"e":5,"overall":70,"title":"Michaelangelo Toys Around"},{"e":6,"overall":71,"title":"Peking Turtle"},{"e":7,"overall":72,"title":"Shredder's Mom"},{"e":8,"overall":73,"title":"Four Turtles and a Baby"},{"e":9,"overall":74,"title":"Turtlemaniac"},{"e":10,"overall":75,"title":"Rondo in New York"},{"e":11,"overall":76,"title":"Planet of the Turtles"},{"e":12,"overall":77,"title":"Name That Toon"},{"e":13,"overall":78,"title":"Menace Maestro, Please"},{"e":14,"overall":79,"title":"Superhero for a Day"},{"e":15,"overall":80,"title":"Back to the Egg"},{"e":16,"overall":81,"title":"Son of Return of the Fly II"},{"e":17,"overall":82,"title":"The Turtles and the Hare"},{"e":18,"overall":83,"title":"Once Upon a Time Machine"},{"e":19,"overall":84,"title":"Bebop and Rocksteady Conquer the Universe"},{"e":20,"overall":85,"title":"Raphael Meets His Match"},{"e":21,"overall":86,"title":"Slash - The Evil Turtle from Dimension X"},{"e":22,"overall":87,"title":"Leonardo Lightens Up"},{"e":23,"overall":88,"title":"Were-Rats from Channel 6"},{"e":24,"overall":89,"title":"Funny, They Shrunk Michaelangelo"},{"e":25,"overall":90,"title":"The Big Zipp Attack"},{"e":26,"overall":91,"title":"Donatello Makes Time"},{"e":27,"overall":92,"title":"Farewell, Lotus Blossom"},{"e":28,"overall":93,"title":"Rebel Without a Fin"},{"e":29,"overall":94,"title":"Raphael Knocks 'Em Dead"},{"e":30,"overall":95,"title":"Michaelangelo Meets Bugman"},{"e":31,"overall":96,"title":"Poor Little Rich Turtle"},{"e":32,"overall":97,"title":"What's Michaelangelo Good For?"},{"e":33,"overall":98,"title":"The Adventures of Rhino-Man"},{"e":34,"overall":99,"title":"Donatello's Degree"},{"e":35,"overall":100,"title":"The Big Cufflink Caper!"},{"e":36,"overall":101,"title":"Leonardo Versus Tempestra"},{"e":37,"overall":102,"title":"Splinter Vanishes"},{"e":38,"overall":103,"title":"Raphael Drives 'Em Wild"},{"e":39,"overall":104,"title":"Beyond the Donatello Nebula"},{"e":40,"overall":105,"title":"The Big Bug Blunder"},{"e":41,"overall":106,"title":"Michaelangelo's Alien Adventure"}]},{"season":5,"episodes":[{"e":1,"overall":107,"title":"Planet of the Turtleoids (Part 1)"},{"e":2,"overall":108,"title":"Planet of the Turtleoids (Part 2)"},{"e":3,"overall":109,"title":"My Brother, the Bad Guy"},{"e":4,"overall":110,"title":"Michaelangelo Meets Mondo Gecko"},{"e":5,"overall":111,"title":"Enter: Mutagen Man"},{"e":6,"overall":112,"title":"Donatello's Badd Time"},{"e":7,"overall":113,"title":"Michaelangelo Meets Bugman Again"},{"e":8,"overall":114,"title":"Muckman Messes Up"},{"e":9,"overall":115,"title":"Napoleon Bonafrog: Colossus of the Swamps"},{"e":10,"overall":116,"title":"Raphael Versus the Volcano"},{"e":11,"overall":117,"title":"Landlord of the Flies"},{"e":12,"overall":118,"title":"Donatello's Duplicate"},{"e":13,"overall":119,"title":"The Ice Creature Cometh"},{"e":14,"overall":120,"title":"Leonardo Cuts Loose"},{"e":15,"overall":121,"title":"Pirate Radio"},{"e":16,"overall":122,"title":"Raphael, Turtle of a Thousand Faces"},{"e":17,"overall":123,"title":"Leonardo, the Renaissance Turtle"},{"e":18,"overall":124,"title":"Zach and the Alien Invaders"},{"e":19,"overall":125,"title":"Welcome Back, Polarisoids"},{"e":20,"overall":126,"title":"Michaelangelo, the Sacred Turtle"}]},{"season":6,"episodes":[{"e":1,"overall":127,"title":"Rock Around the Block"},{"e":2,"overall":128,"title":"Leonardo is Missing"},{"e":3,"overall":129,"title":"Krangenstein Lives!"},{"e":4,"overall":130,"title":"Return of the Turtleoid"},{"e":5,"overall":131,"title":"Super Irma"},{"e":6,"overall":132,"title":"Too Hot to Handle"},{"e":7,"overall":133,"title":"Shreeka's Revenge"},{"e":8,"overall":134,"title":"Donatello Trashes Slash"},{"e":9,"overall":135,"title":"Sword of Yurikawa"},{"e":10,"overall":136,"title":"Nightmare in the Lair"},{"e":11,"overall":137,"title":"Adventures in Turtle-Sitting"},{"e":12,"overall":138,"title":"Phantom of the Sewers"},{"e":13,"overall":139,"title":"Snakes Alive!"},{"e":14,"overall":140,"title":"Polly Wanna Pizza"},{"e":15,"overall":141,"title":"Mr. Nice Guy"},{"e":16,"overall":142,"title":"Sleuth on the Loose"}]},{"season":7,"episodes":[{"e":1,"overall":143,"title":"Tower of Power"},{"e":2,"overall":144,"title":"Rust Never Sleeps"},{"e":3,"overall":145,"title":"A Real Snow Job"},{"e":4,"overall":146,"title":"Venice on the Half Shell"},{"e":5,"overall":147,"title":"Artless"},{"e":6,"overall":148,"title":"Ring of Fire"},{"e":7,"overall":149,"title":"The Irish Jig is Up"},{"e":8,"overall":150,"title":"Shredder's New Sword"},{"e":9,"overall":151,"title":"The Lost Queen of Atlantis"},{"e":10,"overall":152,"title":"Turtles on the Orient Express"},{"e":11,"overall":153,"title":"April Gets in Dutch"},{"e":12,"overall":154,"title":"Northern Lights Out"},{"e":13,"overall":155,"title":"Elementary, My Dear Turtle"},{"e":14,"overall":156,"title":"Night of the Dark Turtle"},{"e":15,"overall":157,"title":"The Starchild"},{"e":16,"overall":158,"title":"The Legend of Koji"},{"e":17,"overall":159,"title":"Convicts from Dimension X"},{"e":18,"overall":160,"title":"White Belt, Black Heart"},{"e":19,"overall":161,"title":"Night of the Rogues"},{"e":20,"overall":162,"title":"Attack of the Neutrinos"},{"e":21,"overall":163,"title":"Escape from the Planet of the Turtleoids"},{"e":22,"overall":164,"title":"Revenge of the Fly"},{"e":23,"overall":165,"title":"Atlantis Awakes"},{"e":24,"overall":166,"title":"Dirk Savage: Mutant Hunter!"},{"e":25,"overall":167,"title":"Invasion of the Krangazoids"},{"e":26,"overall":168,"title":"Combat Land"},{"e":27,"overall":169,"title":"Shredder Triumphant!"}]},{"season":8,"episodes":[{"e":1,"overall":170,"title":"Get Shredder!"},{"e":2,"overall":171,"title":"Wrath of the Rat King"},{"e":3,"overall":172,"title":"State of Shock"},{"e":4,"overall":173,"title":"Cry H.A.V.O.C.!"},{"e":5,"overall":174,"title":"H.A.V.O.C. in the Streets!"},{"e":6,"overall":175,"title":"Enter: Krakus"},{"e":7,"overall":176,"title":"Cyber-Turtles"},{"e":8,"overall":177,"title":"Turtle Trek"}]},{"season":9,"episodes":[{"e":1,"overall":178,"title":"The Unknown Ninja"},{"e":2,"overall":179,"title":"Dregg of the Earth"},{"e":3,"overall":180,"title":"The Wrath of Medusa"},{"e":4,"overall":181,"title":"The New Mutation"},{"e":5,"overall":182,"title":"The Showdown"},{"e":6,"overall":183,"title":"Split-Second"},{"e":7,"overall":184,"title":"Carter, the Enforcer"},{"e":8,"overall":185,"title":"Doomquest"}]},{"season":10,"episodes":[{"e":1,"overall":186,"title":"The Return of Dregg"},{"e":2,"overall":187,"title":"The Beginning of the End"},{"e":3,"overall":188,"title":"The Power of Three"},{"e":4,"overall":189,"title":"A Turtle in Time"},{"e":5,"overall":190,"title":"Turtles to the Second Power"},{"e":6,"overall":191,"title":"Mobster from Dimension X"},{"e":7,"overall":192,"title":"The Day the Earth Disappeared"},{"e":8,"overall":193,"title":"Divide and Conquer"}]}]},{"id":"batman-tas","title":"Batman: The Animated Series","year":1992,"endYear":1999,"genres":["Animation","Action","Superhero","Drama","Crime"],"owned":"Amazon (Prime Video)","theme":"batman","seasonLabels":{"1":"Season 1","2":"Season 2","3":"Season 3","4":"The New Batman Adventures"},"seasons":[{"season":1,"episodes":[{"e":1,"overall":1,"title":"On Leather Wings"},{"e":2,"overall":2,"title":"Christmas with the Joker"},{"e":3,"overall":3,"title":"Nothing to Fear"},{"e":4,"overall":4,"title":"The Last Laugh"},{"e":5,"overall":5,"title":"Pretty Poison"},{"e":6,"overall":6,"title":"The Underdwellers"},{"e":7,"overall":7,"title":"P.O.V."},{"e":8,"overall":8,"title":"The Forgotten"},{"e":9,"overall":9,"title":"Be a Clown"},{"e":10,"overall":10,"title":"Two-Face (Part 1)"},{"e":11,"overall":11,"title":"Two-Face (Part 2)"},{"e":12,"overall":12,"title":"It's Never Too Late"},{"e":13,"overall":13,"title":"I've Got Batman in My Basement"},{"e":14,"overall":14,"title":"Heart of Ice"},{"e":15,"overall":15,"title":"The Cat and the Claw (Part 1)"},{"e":16,"overall":16,"title":"The Cat and the Claw (Part 2)"},{"e":17,"overall":17,"title":"See No Evil"},{"e":18,"overall":18,"title":"Beware the Gray Ghost"},{"e":19,"overall":19,"title":"Prophecy of Doom"},{"e":20,"overall":20,"title":"Feat of Clay (Part 1)"},{"e":21,"overall":21,"title":"Feat of Clay (Part 2)"},{"e":22,"overall":22,"title":"Joker's Favor"},{"e":23,"overall":23,"title":"Vendetta"},{"e":24,"overall":24,"title":"Fear of Victory"},{"e":25,"overall":25,"title":"The Clock King"},{"e":26,"overall":26,"title":"Appointment in Crime Alley"},{"e":27,"overall":27,"title":"Mad as a Hatter"},{"e":28,"overall":28,"title":"Dreams in Darkness"}]},{"season":2,"episodes":[{"e":1,"overall":29,"title":"Eternal Youth"},{"e":2,"overall":30,"title":"Perchance to Dream"},{"e":3,"overall":31,"title":"The Cape and Cowl Conspiracy"},{"e":4,"overall":32,"title":"Robin's Reckoning (Part 1)"},{"e":5,"overall":33,"title":"Robin's Reckoning (Part 2)"},{"e":6,"overall":34,"title":"The Laughing Fish"},{"e":7,"overall":35,"title":"Night of the Ninja"},{"e":8,"overall":36,"title":"Cat Scratch Fever"},{"e":9,"overall":37,"title":"The Strange Secret of Bruce Wayne"},{"e":10,"overall":38,"title":"Heart of Steel (Part 1)"},{"e":11,"overall":39,"title":"Heart of Steel (Part 2)"},{"e":12,"overall":40,"title":"If You're So Smart, Why Aren't You Rich?"},{"e":13,"overall":41,"title":"Joker's Wild"},{"e":14,"overall":42,"title":"Tyger, Tyger"},{"e":15,"overall":43,"title":"Moon of the Wolf"},{"e":16,"overall":44,"title":"Day of the Samurai"},{"e":17,"overall":45,"title":"Terror in the Sky"},{"e":18,"overall":46,"title":"Almost Got 'Im"},{"e":19,"overall":47,"title":"Birds of a Feather"},{"e":20,"overall":48,"title":"What Is Reality?"},{"e":21,"overall":49,"title":"I Am the Night"},{"e":22,"overall":50,"title":"Off Balance"},{"e":23,"overall":51,"title":"The Man Who Killed Batman"},{"e":24,"overall":52,"title":"Mudslide"},{"e":25,"overall":53,"title":"Paging the Crime Doctor"},{"e":26,"overall":54,"title":"Zatanna"},{"e":27,"overall":55,"title":"The Mechanic"},{"e":28,"overall":56,"title":"Harley and Ivy"}]},{"season":3,"episodes":[{"e":1,"overall":57,"title":"Shadow of the Bat (Part 1)"},{"e":2,"overall":58,"title":"Shadow of the Bat (Part 2)"},{"e":3,"overall":59,"title":"Blind as a Bat"},{"e":4,"overall":60,"title":"The Demon's Quest (Part 1)"},{"e":5,"overall":61,"title":"The Demon's Quest (Part 2)"},{"e":6,"overall":62,"title":"His Silicon Soul"},{"e":7,"overall":63,"title":"Fire from Olympus"},{"e":8,"overall":64,"title":"Read My Lips"},{"e":9,"overall":65,"title":"The Worry Men"},{"e":10,"overall":66,"title":"Sideshow"},{"e":11,"overall":67,"title":"A Bullet for Bullock"},{"e":12,"overall":68,"title":"Trial"},{"e":13,"overall":69,"title":"Avatar"},{"e":14,"overall":70,"title":"House and Garden"},{"e":15,"overall":71,"title":"The Terrible Trio"},{"e":16,"overall":72,"title":"Harlequinade"},{"e":17,"overall":73,"title":"Time Out of Joint"},{"e":18,"overall":74,"title":"Catwalk"},{"e":19,"overall":75,"title":"Bane"},{"e":20,"overall":76,"title":"Baby-Doll"},{"e":21,"overall":77,"title":"The Lion and the Unicorn"},{"e":22,"overall":78,"title":"Showdown"},{"e":23,"overall":79,"title":"Riddler's Reform"},{"e":24,"overall":80,"title":"Second Chance"},{"e":25,"overall":81,"title":"Harley's Holiday"},{"e":26,"overall":82,"title":"Lock-Up"},{"e":27,"overall":83,"title":"Make 'Em Laugh"},{"e":28,"overall":84,"title":"Deep Freeze"},{"e":29,"overall":85,"title":"Batgirl Returns"}]},{"season":4,"episodes":[{"e":1,"overall":86,"title":"Holiday Knights"},{"e":2,"overall":87,"title":"Sins of the Father"},{"e":3,"overall":88,"title":"Cold Comfort"},{"e":4,"overall":89,"title":"Double Talk"},{"e":5,"overall":90,"title":"You Scratch My Back"},{"e":6,"overall":91,"title":"Never Fear"},{"e":7,"overall":92,"title":"Joker's Millions"},{"e":8,"overall":93,"title":"Growing Pains"},{"e":9,"overall":94,"title":"Love Is a Croc"},{"e":10,"overall":95,"title":"Torch Song"},{"e":11,"overall":96,"title":"The Ultimate Thrill"},{"e":12,"overall":97,"title":"Over the Edge"},{"e":13,"overall":98,"title":"Mean Seasons"},{"e":14,"overall":99,"title":"Critters"},{"e":15,"overall":100,"title":"Cult of the Cat"},{"e":16,"overall":101,"title":"Animal Act"},{"e":17,"overall":102,"title":"Old Wounds"},{"e":18,"overall":103,"title":"The Demon Within"},{"e":19,"overall":104,"title":"Legends of the Dark Knight"},{"e":20,"overall":105,"title":"Girls' Night Out"},{"e":21,"overall":106,"title":"Mad Love"},{"e":22,"overall":107,"title":"Chemistry"},{"e":23,"overall":108,"title":"Beware the Creeper"},{"e":24,"overall":109,"title":"Judgment Day"}]}]}];
+
+const CODEX_SEED = { "batman-tas": [{"id":"cx1","name":"The Joker","type":"Villain","notes":""},{"id":"cx2","name":"Two-Face","type":"Villain","notes":""},{"id":"cx3","name":"Mr. Freeze","type":"Villain","notes":""},{"id":"cx4","name":"Poison Ivy","type":"Villain","notes":""},{"id":"cx5","name":"Harley Quinn","type":"Villain","notes":""},{"id":"cx6","name":"The Penguin","type":"Villain","notes":""},{"id":"cx7","name":"The Riddler","type":"Villain","notes":""},{"id":"cx8","name":"Catwoman","type":"Villain","notes":""},{"id":"cx9","name":"Ra's al Ghul","type":"Villain","notes":""},{"id":"cx10","name":"Scarecrow","type":"Villain","notes":""},{"id":"cx11","name":"Clayface","type":"Villain","notes":""},{"id":"cx12","name":"Mad Hatter","type":"Villain","notes":""},{"id":"cx13","name":"Killer Croc","type":"Villain","notes":""},{"id":"cx14","name":"Bane","type":"Villain","notes":""},{"id":"cx15","name":"The Ventriloquist & Scarface","type":"Villain","notes":""},{"id":"cx16","name":"Man-Bat","type":"Villain","notes":""},{"id":"cx17","name":"Robin (Dick Grayson)","type":"Ally","notes":""},{"id":"cx18","name":"Batgirl","type":"Ally","notes":""},{"id":"cx19","name":"Alfred Pennyworth","type":"Ally","notes":""},{"id":"cx20","name":"Commissioner Gordon","type":"Ally","notes":""},{"id":"cx21","name":"Harvey Bullock","type":"Ally","notes":""},{"id":"cx22","name":"Renee Montoya","type":"Ally","notes":""},{"id":"cx23","name":"Lucius Fox","type":"Ally","notes":""},{"id":"cx24","name":"The Batmobile","type":"Gadget","notes":""},{"id":"cx25","name":"The Batwing","type":"Gadget","notes":""},{"id":"cx26","name":"Batarang","type":"Gadget","notes":""},{"id":"cx27","name":"Wayne Manor","type":"Location","notes":""},{"id":"cx28","name":"The Batcave","type":"Location","notes":""},{"id":"cx29","name":"Arkham Asylum","type":"Location","notes":""},{"id":"cx30","name":"Gotham City","type":"Location","notes":""},{"id":"cx31","name":"GCPD","type":"Location","notes":""}] };
+
+const VERDICT_LABELS = {
+  tmnt:{love:"Cowabunga",like:"Radical",meh:"Meh",nah:"Bogus"},
+  batman:{love:"Gotham gold",like:"Solid",meh:"Middling",nah:"Rogues' gallery"},
+  shelf:{love:"Loved it",like:"Liked",meh:"Meh",nah:"Not for me"}
+};
+const FEELINGS = ["Nostalgic","Funny","Action-packed","Cheesy","Clever","Boring","Weird","Comfort watch","Filler","Iconic","Villain-heavy","Slow","Rewatchable","Surprising","Emotional","Dark"];
+const VERDICT_META = { love:{emo:"\uD83D\uDD25"}, like:{emo:"\uD83D\uDC4D"}, meh:{emo:"\uD83D\uDE10"}, nah:{emo:"\uD83D\uDC4E"} };
+const CODEX_TYPES = ["Villain","Ally","Gadget","Location","Other"];
+const CODEX_TYPE_ICON = {Villain:"\u2620",Ally:"\uD83E\uDD87",Gadget:"\u2699",Location:"\uD83D\uDCCD",Other:"\u25C6"};
+
+
+/* ===========================================================================
+   APP
+   =========================================================================== */
+// ---------------------------------------------------------------------------
+// app.js — Rerun UI + logic (ES module)
+// Storage is provided by store.js (Firestore + anonymous auth).
+// Static data/constants come from data.js.
+// ---------------------------------------------------------------------------
+
+function verdictColor(v){
+  if(v==="nah") return "var(--red)";
+  if(v==="meh") return "var(--mute)";
+  if(v==="like") return "var(--accent-2)";
+  return "var(--accent)";
+}
+function showHasCodex(show){ return !!CODEX_SEED[show.id] || !!(show && show._codexEnabled); }
+
+// ---------- state ----------
+let SHOWS=[]; let reviews={}; let view={name:"home"}; let genreFilter=null; let searchQ=""; let editing=null; let draft=null; let newTheme="shelf";
+let codex={};        // showId -> [ {id,name,type,notes} ]
+let showTab="seasons"; // seasons | codex  (on show page)
+let cxFilter=null;   // codex type filter
+let cxEditing=null;  // entry being viewed in detail drawer
+let cxModalMode="new"; // new | edit
+const rkey=(id,s,e)=>`${id}|${s}|${e}`;
+
+async function boot(){
+  let reg=await sGet("rr:shows");
+  if(!reg){
+    reg=SEED.map(s=>({id:s.id,title:s.title,year:s.year,endYear:s.endYear,genres:s.genres,owned:s.owned,theme:s.theme}));
+    await sSet("rr:shows",reg);
+    for(const s of SEED) await sSet("rr:showdata:"+s.id, s);
+  }
+  SHOWS=reg;
+  const keys=await sList("rr:rev:");
+  for(const k of keys){ const v=await sGet(k); if(v) reviews[k.slice("rr:rev:".length)]=v; }
+  // load codex per show (seed on first run)
+  for(const id of Object.keys(CODEX_SEED)){
+    let cx=await sGet("rr:codex:"+id);
+    if(!cx){ cx=JSON.parse(JSON.stringify(CODEX_SEED[id])); await sSet("rr:codex:"+id, cx); }
+    codex[id]=cx;
+  }
+  render();
+}
+async function saveCodex(showId){ await sSet("rr:codex:"+showId, codex[showId]||[]); }
+function codexEntry(showId,eid){ return (codex[showId]||[]).find(e=>e.id===eid); }
+// derive the episode appearances of an entry by scanning reviews
+function codexAppearances(show, entryId){
+  const out=[];
+  for(const sd of show.seasons){
+    for(const ep of sd.episodes){
+      const r=reviews[rkey(show.id,sd.season,ep.e)];
+      if(r && r.codex && r.codex.includes(entryId)) out.push({season:sd.season,e:ep.e,overall:ep.overall,title:ep.title});
+    }
+  }
+  out.sort((a,b)=>a.overall-b.overall);
+  return out;
+}
+async function getShowData(id){ return await sGet("rr:showdata:"+id); }
+function setTheme(t){ document.body.setAttribute("data-theme", t||"shelf"); }
+
+// ---------- nav ----------
+function goHome(){ view={name:"home"}; setTheme("shelf"); render(); }
+async function openShow(id){ const d=await getShowData(id); view={name:"show",show:d}; showTab="seasons"; cxFilter=null; setTheme(d.theme||"shelf"); render(); }
+function openSeason(n){ view={name:"season",show:view.show,season:n}; render(); }
+
+function render(){
+  const app=document.getElementById("app");
+  if(view.name==="home") app.innerHTML=renderHome();
+  else if(view.name==="show") app.innerHTML=renderShow(view.show);
+  else if(view.name==="season") app.innerHTML=renderSeason(view.show,view.season);
+  wire();
+}
+
+function showStats(show){ let total=0,rated=0; (show.seasons||[]).forEach(sd=>sd.episodes.forEach(ep=>{ total++; if(reviews[rkey(show.id,sd.season,ep.e)]) rated++; })); return {total,rated}; }
+
+// ---------- home ----------
+function renderHome(){
+  const allGenres={};
+  SHOWS.forEach(sh=>(sh.genres||[]).forEach(g=>allGenres[g]=(allGenres[g]||0)+1));
+  let visible=SHOWS.filter(sh=>{
+    const okG=!genreFilter||(sh.genres||[]).includes(genreFilter);
+    const okS=!searchQ||sh.title.toLowerCase().includes(searchQ.toLowerCase());
+    return okG&&okS;
+  });
+  const pills=Object.keys(allGenres).sort().map(g=>`<button class="pill ${genreFilter===g?'on':''}" data-genre="${g}">${g}<span class="cnt">${allGenres[g]}</span></button>`).join("");
+  const cards=visible.map(sh=>{
+    const t=sh.theme||"shelf";
+    // stats need full data; approximate from cached if present
+    const cached=(view._statCache&&view._statCache[sh.id]);
+    return `<div class="card" data-show="${sh.id}" data-t="${t}">
+      <div class="badge">${t==="tmnt"?"Neon":t==="batman"?"Noir":"Show"}</div>
+      <div class="yr">${sh.year||''}${sh.endYear?'–'+sh.endYear:''}</div>
+      <h3>${sh.title}</h3>
+      <div class="meta">${sh.owned?sh.owned:''}</div>
+      <div class="tagrow">${(sh.genres||[]).slice(0,3).map(g=>`<em class="microtag">${g}</em>`).join("")}</div>
+      <div class="prog"><div class="bar"><i id="bar-${sh.id}"></i></div><small id="prog-${sh.id}">…</small></div>
+    </div>`;
+  }).join("");
+  setTimeout(fillProgress,0);
+  return `
+    <div class="crumbs"><b>Your shelf</b></div>
+    <h1 class="page">The shows you're revisiting</h1>
+    <div class="sub">Log your way back through the cartoons you grew up on — one episode, one gut reaction at a time.</div>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--mute)"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input id="homeSearch" placeholder="Search your shelf…" value="${searchQ.replace(/"/g,'&quot;')}">
+    </div>
+    ${pills?`<div class="pills"><button class="pill ${!genreFilter?'on':''}" data-genre="">All</button>${pills}</div>`:''}
+    <div class="grid">
+      ${cards||'<div class="empty">Nothing matches. Try clearing the filter.</div>'}
+      <div class="card addcard" data-t="shelf" id="addShowBtn"><div class="plus">+</div><span>Add another show to the shelf</span></div>
+    </div>
+    <footer class="foot">RERUN · a personal watch log</footer>`;
+}
+async function fillProgress(){
+  for(const sh of SHOWS){
+    const bar=document.getElementById("bar-"+sh.id), prog=document.getElementById("prog-"+sh.id);
+    if(!bar) continue;
+    const d=await getShowData(sh.id);
+    if(!d){ prog.textContent="—"; continue; }
+    const st=showStats(d); const pct=st.total?Math.round(st.rated/st.total*100):0;
+    bar.style.width=pct+"%"; prog.textContent=`${st.rated} / ${st.total} episodes logged`;
+  }
+}
+
+// ---------- show ----------
+function seasonLabel(show,n){ return (show.seasonLabels&&show.seasonLabels[String(n)])||("Season "+n); }
+function renderShow(show){
+  const st=showStats(show);
+  const strip=show.seasons.map(sd=>{
+    let rated=0; sd.episodes.forEach(ep=>{ if(reviews[rkey(show.id,sd.season,ep.e)]) rated++; });
+    const lbl=seasonLabel(show,sd.season);
+    const isNamed=lbl!=="Season "+sd.season;
+    return `<button class="seasonbtn ${isNamed?'wide':''}" data-season="${sd.season}">${isNamed?lbl:'S'+sd.season}<small>${rated}/${sd.episodes.length}</small></button>`;
+  }).join("");
+  const genres=(show.genres||[]).map(g=>`<span class="microtag">${g}</span>`).join(" ");
+  const hasCx=showHasCodex(show);
+  const cxCount=(codex[show.id]||[]).length;
+  const tabs=hasCx?`<div class="tabs">
+      <button class="tab ${showTab==='seasons'?'on':''}" data-tab="seasons">Seasons</button>
+      <button class="tab ${showTab==='codex'?'on':''}" data-tab="codex">Codex<span class="n">${cxCount}</span></button>
+    </div>`:'';
+  const body = (hasCx && showTab==='codex') ? renderCodexTab(show) : `
+    <div class="fieldlabel">Pick a season</div>
+    <div class="season-strip">${strip}</div>`;
+  return `
+    <div class="crumbs"><button class="crumb-btn" onclick="goHome()">Shelf</button><span class="sep">›</span><b>${show.title}</b></div>
+    <h1 class="page">${show.title}</h1>
+    <div class="sub">${show.year||''}${show.endYear?'–'+show.endYear:''} · ${show.seasons.length} seasons · ${st.total} episodes ${show.owned?'· '+show.owned:''}</div>
+    <div class="tagrow" style="margin-bottom:18px">${genres}</div>
+    <div class="stat-row">
+      <div class="stat"><b>${st.rated}</b><span>logged</span></div>
+      <div class="stat"><b>${st.total-st.rated}</b><span>to go</span></div>
+      <div class="stat"><b>${st.total?Math.round(st.rated/st.total*100):0}%</b><span>complete</span></div>
+    </div>
+    ${tabs}
+    ${body}`;
+}
+
+// ---------- codex tab ----------
+function renderCodexTab(show){
+  const list=(codex[show.id]||[]).slice();
+  const typesPresent=CODEX_TYPES.filter(t=>list.some(e=>e.type===t));
+  const filterPills=`<button class="pill ${!cxFilter?'on':''}" data-cxfilter="">All<span class="cnt">${list.length}</span></button>`+
+    typesPresent.map(t=>`<button class="pill ${cxFilter===t?'on':''}" data-cxfilter="${t}">${t}<span class="cnt">${list.filter(e=>e.type===t).length}</span></button>`).join("");
+  let shown=cxFilter?list.filter(e=>e.type===cxFilter):list;
+  // sort: by type order then name
+  shown.sort((a,b)=>(CODEX_TYPES.indexOf(a.type)-CODEX_TYPES.indexOf(b.type))||a.name.localeCompare(b.name));
+  const cards=shown.map(e=>{
+    const apps=codexAppearances(show,e.id);
+    const noteBit=e.notes?`<div class="cx-note">${escapeHtml(e.notes)}</div>`:'';
+    return `<div class="cx" data-cx="${e.id}">
+      <div class="cx-dot">${CODEX_TYPE_ICON[e.type]||'◆'}</div>
+      <div class="cx-type">${e.type}</div>
+      <h4>${escapeHtml(e.name)}</h4>
+      <div class="cx-count">${apps.length? apps.length+' episode'+(apps.length>1?'s':'') : 'not tagged yet'}</div>
+      ${noteBit}
+    </div>`;
+  }).join("");
+  return `
+    <div class="sub" style="margin-top:4px">Entries from your companion guide. Open one to add notes; tag them onto episodes as they appear.</div>
+    <div class="cx-type-filter">${filterPills}</div>
+    <div class="codex-grid">
+      ${cards}
+      <div class="cx cx-add" id="cxAddBtn"><div class="plus">+</div><span>New entry</span></div>
+    </div>`;
+}
+function escapeHtml(s){ return (s||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ---------- season ----------
+function verdictDot(v){ return v?`<span class="verdot" style="background:${verdictColor(v)}"></span>`:''; }
+function renderSeason(show,n){
+  const sd=show.seasons.find(x=>x.season===n);
+  const rows=sd.episodes.map(ep=>{
+    const r=reviews[rkey(show.id,n,ep.e)]; const rated=!!r;
+    const chips=rated&&r.feelings&&r.feelings.length?`<span class="chiprow">${r.feelings.slice(0,3).map(f=>`<em>${f}</em>`).join("")}</span>`:'';
+    const score=rated&&r.score?`<span>★ ${r.score}/10</span>`:'';
+    const kw=rated&&r.keywords&&r.keywords.length?`<span>· ${r.keywords.length} kw</span>`:'';
+    const cxc=rated&&r.codex&&r.codex.length?`<span>· ${r.codex.length} codex</span>`:'';
+    const verEmo=rated&&r.verdict?VERDICT_META[r.verdict].emo:'';
+    return `<div class="ep ${rated?'rated':''}" data-e="${ep.e}">
+      <div class="num">${rated&&r.verdict?verdictDot(r.verdict):('E'+ep.e)}</div>
+      <div class="body"><div class="t">${ep.title}</div>
+        <div class="s"><span>Ep ${ep.e} · #${ep.overall} overall</span>${score}${kw}${cxc}${chips}</div></div>
+      <div class="verdict">${verEmo}</div></div>`;
+  }).join("");
+  const lbl=seasonLabel(show,n);
+  return `
+    <div class="crumbs"><button class="crumb-btn" onclick="goHome()">Shelf</button><span class="sep">›</span>
+      <button class="crumb-btn" onclick="openShow('${show.id}')">${show.title}</button><span class="sep">›</span><b>${lbl}</b></div>
+    <h1 class="page">${lbl}</h1>
+    <div class="sub">${sd.episodes.length} episodes · tap any to log how it landed</div>
+    <div class="eplist">${rows}</div>`;
+}
+
+// ---------- review drawer ----------
+function openReview(show,n,ep){
+  editing={showId:show.id,s:n,e:ep.e,show:show};
+  const existing=reviews[rkey(show.id,n,ep.e)];
+  draft=existing?JSON.parse(JSON.stringify(existing)):{verdict:null,feelings:[],keywords:[],score:null,notes:""};
+  if(!draft.codex) draft.codex=[];
+  const theme=show.theme||"shelf";
+  document.getElementById("d-eyebrow").textContent=`${show.title} · ${seasonLabel(show,n)} · E${ep.e} · #${ep.overall}`;
+  document.getElementById("d-title").textContent=ep.title;
+  // themed verdict labels
+  const L=VERDICT_LABELS[theme]||VERDICT_LABELS.shelf;
+  document.querySelectorAll("#d-verdict .vbtn").forEach(b=>{ b.querySelector(".lbl").textContent=L[b.dataset.v]; });
+  document.querySelectorAll("#d-verdict .vbtn").forEach(b=>{
+    b.classList.toggle("on",draft.verdict===b.dataset.v);
+    b.onclick=()=>{ draft.verdict=draft.verdict===b.dataset.v?null:b.dataset.v;
+      document.querySelectorAll("#d-verdict .vbtn").forEach(x=>x.classList.toggle("on",x.dataset.v===draft.verdict)); };
+  });
+  const fc=document.getElementById("d-feelings");
+  fc.innerHTML=FEELINGS.map(f=>`<button class="feel ${draft.feelings.includes(f)?'on':''}" data-f="${f}">${f}</button>`).join("");
+  fc.querySelectorAll(".feel").forEach(b=>b.onclick=()=>{ const f=b.dataset.f,i=draft.feelings.indexOf(f); if(i>=0)draft.feelings.splice(i,1);else draft.feelings.push(f); b.classList.toggle("on"); });
+  const rc=document.getElementById("d-rating"); rc.innerHTML="";
+  for(let k=1;k<=10;k++){ const d=document.createElement("div"); d.className="rdot"+(draft.score===k?" on":""); d.textContent=k;
+    d.onclick=()=>{ draft.score=draft.score===k?null:k; rc.querySelectorAll(".rdot").forEach((x,i)=>x.classList.toggle("on",draft.score===i+1)); }; rc.appendChild(d); }
+  renderKW();
+  const kin=document.getElementById("d-kwinput"); kin.value="";
+  kin.onkeydown=(e)=>{ if(e.key==="Enter"||e.key===","){ e.preventDefault(); const v=kin.value.trim().replace(/,$/,""); if(v&&!draft.keywords.includes(v)){draft.keywords.push(v);renderKW();} kin.value=""; }
+    else if(e.key==="Backspace"&&kin.value===""){ draft.keywords.pop(); renderKW(); } };
+  // codex "appears in this episode" tagger
+  const aLabel=document.getElementById("d-appears-label"), aWrap=document.getElementById("d-appears");
+  if(showHasCodex(show)){
+    aLabel.style.display="";
+    const list=(codex[show.id]||[]).slice().sort((a,b)=>(CODEX_TYPES.indexOf(a.type)-CODEX_TYPES.indexOf(b.type))||a.name.localeCompare(b.name));
+    if(list.length){
+      aWrap.innerHTML=list.map(e=>`<button class="app ${draft.codex.includes(e.id)?'on':''}" data-app="${e.id}">${escapeHtml(e.name)}<span class="ty">${e.type}</span></button>`).join("");
+      aWrap.querySelectorAll(".app").forEach(b=>b.onclick=()=>{ const id=b.dataset.app,i=draft.codex.indexOf(id); if(i>=0)draft.codex.splice(i,1);else draft.codex.push(id); b.classList.toggle("on"); });
+    } else {
+      aWrap.innerHTML=`<span class="appears-empty">No codex entries yet — add some on the show's Codex tab.</span>`;
+    }
+  } else { aLabel.style.display="none"; aWrap.innerHTML=""; }
+  document.getElementById("d-notes").value=draft.notes||"";
+  document.getElementById("d-notes").oninput=(e)=>draft.notes=e.target.value;
+  document.getElementById("d-saved").classList.remove("show");
+  document.getElementById("scrim").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("drawer").setAttribute("aria-hidden","false");
+}
+function renderKW(){ const wrap=document.getElementById("d-kwwrap"); wrap.querySelectorAll(".kw").forEach(n=>n.remove());
+  const input=document.getElementById("d-kwinput");
+  draft.keywords.forEach((k,idx)=>{ const el=document.createElement("span"); el.className="kw"; el.innerHTML=`${k} <button aria-label="remove">✕</button>`;
+    el.querySelector("button").onclick=(e)=>{ e.stopPropagation(); draft.keywords.splice(idx,1); renderKW(); }; wrap.insertBefore(el,input); }); }
+async function saveReview(){ if(!editing) return; const k=rkey(editing.showId,editing.s,editing.e);
+  const empty=!draft.verdict&&!draft.feelings.length&&!draft.keywords.length&&!draft.score&&!(draft.notes||"").trim()&&!(draft.codex&&draft.codex.length);
+  if(empty){ delete reviews[k]; await sDel("rr:rev:"+k); } else { draft.ts=Date.now(); reviews[k]=draft; await sSet("rr:rev:"+k,draft); }
+  document.getElementById("d-saved").classList.add("show"); setTimeout(()=>{ closeDrawer(); render(); },380); }
+async function clearReview(){ if(!editing) return; const k=rkey(editing.showId,editing.s,editing.e); delete reviews[k]; await sDel("rr:rev:"+k); closeDrawer(); render(); }
+function closeDrawer(){ document.getElementById("scrim").classList.remove("open"); document.getElementById("drawer").classList.remove("open"); document.getElementById("drawer").setAttribute("aria-hidden","true"); editing=null; }
+
+// ---------- codex detail drawer ----------
+function openCodex(showId, entryId){
+  const show=view.show; const e=codexEntry(showId,entryId); if(!e) return;
+  cxEditing={showId,entryId};
+  document.getElementById("cx-badge").textContent=e.type;
+  document.getElementById("cx-name").textContent=e.name;
+  const apps=codexAppearances(show,entryId);
+  const debut=apps.length?apps[0]:null;
+  document.getElementById("cx-debut").textContent=debut?`Debut · ${seasonLabel(show,debut.season)} E${debut.e}`:"Not tagged yet";
+  document.getElementById("cx-notes").value=e.notes||"";
+  document.getElementById("cx-notes").oninput=(ev)=>{ /* held until save */ };
+  const epsWrap=document.getElementById("cx-eps");
+  document.getElementById("cx-eps-label").textContent=`Appears in (${apps.length})`;
+  if(apps.length){
+    epsWrap.innerHTML=apps.map((a,i)=>`<div class="cx-eprow" data-goto="${a.season}|${a.e}">
+        <span class="loc">#${a.overall}</span>
+        <span style="flex:1">${escapeHtml(a.title)}</span>
+        ${i===0?'<span class="deb">Debut</span>':''}
+        <span class="loc">${seasonLabel(show,a.season).replace('Season ','S')} E${a.e}</span>
+      </div>`).join("");
+    epsWrap.querySelectorAll(".cx-eprow").forEach(row=>row.onclick=()=>{ const [s,e2]=row.dataset.goto.split("|").map(Number);
+      closeCodex(); const sd=show.seasons.find(x=>x.season===s); const ep=sd.episodes.find(x=>x.e===e2); openReview(show,s,ep); });
+  } else {
+    epsWrap.innerHTML=`<div class="cx-empty">Not tagged onto any episode yet. Open an episode and use “Appears in this episode”.</div>`;
+  }
+  document.getElementById("cx-saved").classList.remove("show");
+  document.getElementById("cx-scrim").classList.add("open");
+  document.getElementById("cx-drawer").classList.add("open");
+  document.getElementById("cx-drawer").setAttribute("aria-hidden","false");
+}
+function closeCodex(){ document.getElementById("cx-scrim").classList.remove("open"); document.getElementById("cx-drawer").classList.remove("open"); document.getElementById("cx-drawer").setAttribute("aria-hidden","true"); cxEditing=null; }
+async function saveCodexNote(){ if(!cxEditing) return; const e=codexEntry(cxEditing.showId,cxEditing.entryId); if(!e) return;
+  e.notes=document.getElementById("cx-notes").value; await saveCodex(cxEditing.showId);
+  document.getElementById("cx-saved").classList.add("show"); setTimeout(()=>{ closeCodex(); render(); },360); }
+async function deleteCodexEntry(){ if(!cxEditing) return; const arr=codex[cxEditing.showId]||[]; const idx=arr.findIndex(x=>x.id===cxEditing.entryId); if(idx<0) return;
+  const nm=arr[idx].name;
+  // also strip this entry from any episode reviews that tagged it
+  for(const key of Object.keys(reviews)){ const r=reviews[key]; if(r.codex&&r.codex.includes(cxEditing.entryId)){ r.codex=r.codex.filter(x=>x!==cxEditing.entryId); await sSet("rr:rev:"+key,r); } }
+  arr.splice(idx,1); await saveCodex(cxEditing.showId); closeCodex(); render(); }
+
+// ---------- codex entry add/edit modal ----------
+function openCodexModal(mode, entry){ cxModalMode=mode;
+  document.getElementById("cxm-title").textContent = mode==="edit"?"Edit codex entry":"New codex entry";
+  document.getElementById("cxm-name").value = entry?entry.name:"";
+  document.getElementById("cxm-type").value = entry?entry.type:"Villain";
+  document.getElementById("cx-modal").classList.add("open");
+  document.getElementById("cxm-name").focus();
+}
+function closeCodexModal(){ document.getElementById("cx-modal").classList.remove("open"); }
+function editCodexEntry(){ if(!cxEditing) return; const e=codexEntry(cxEditing.showId,cxEditing.entryId); openCodexModal("edit",e); }
+async function saveCodexEntry(){
+  const showId = cxEditing?cxEditing.showId:view.show.id;
+  const name=document.getElementById("cxm-name").value.trim(); if(!name){ document.getElementById("cxm-name").focus(); return; }
+  const type=document.getElementById("cxm-type").value;
+  if(!codex[showId]) codex[showId]=[];
+  if(cxModalMode==="edit" && cxEditing){ const e=codexEntry(showId,cxEditing.entryId); e.name=name; e.type=type; }
+  else { const id="cx"+Date.now(); codex[showId].push({id,name,type,notes:""}); }
+  await saveCodex(showId); closeCodexModal();
+  if(cxModalMode==="edit"){ closeCodex(); }
+  render();
+}
+
+// ---------- add show ----------
+function openModal(){ newTheme="shelf"; document.getElementById("modal").classList.add("open");
+  document.querySelectorAll("#m-themepick .themeopt").forEach(o=>o.classList.toggle("on",o.dataset.theme==="shelf"));
+  document.getElementById("m-title").focus(); }
+function closeModal(){ document.getElementById("modal").classList.remove("open"); ["m-title","m-year","m-genres"].forEach(id=>document.getElementById(id).value=""); }
+async function addShow(){ const title=document.getElementById("m-title").value.trim(); if(!title){document.getElementById("m-title").focus();return;}
+  const year=document.getElementById("m-year").value.trim();
+  const genres=document.getElementById("m-genres").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const id="show-"+Date.now();
+  const show={id,title,year,endYear:"",genres,owned:"",theme:newTheme,seasons:[{season:1,episodes:[]}]};
+  SHOWS.push({id,title,year,endYear:"",genres,owned:"",theme:newTheme});
+  await sSet("rr:shows",SHOWS); await sSet("rr:showdata:"+id,show); closeModal(); goHome(); }
+
+// ---------- wire ----------
+function wire(){
+  document.querySelectorAll(".card[data-show]").forEach(c=>c.onclick=()=>openShow(c.dataset.show));
+  const add=document.getElementById("addShowBtn"); if(add) add.onclick=openModal;
+  document.querySelectorAll(".pill[data-genre]").forEach(p=>p.onclick=()=>{ genreFilter=p.dataset.genre||null; render(); });
+  const hs=document.getElementById("homeSearch"); if(hs) hs.oninput=(e)=>{ searchQ=e.target.value; const pos=e.target.selectionStart; render(); const n=document.getElementById("homeSearch"); if(n){n.focus();n.setSelectionRange(pos,pos);} };
+  document.querySelectorAll(".seasonbtn[data-season]").forEach(b=>b.onclick=()=>openSeason(parseInt(b.dataset.season)));
+  document.querySelectorAll(".ep[data-e]").forEach(row=>row.onclick=()=>{ const sd=view.show.seasons.find(x=>x.season===view.season); const ep=sd.episodes.find(x=>x.e===parseInt(row.dataset.e)); openReview(view.show,view.season,ep); });
+  document.querySelectorAll("#m-themepick .themeopt").forEach(o=>o.onclick=()=>{ newTheme=o.dataset.theme; document.querySelectorAll("#m-themepick .themeopt").forEach(x=>x.classList.toggle("on",x===o)); });
+  // tabs
+  document.querySelectorAll(".tab[data-tab]").forEach(t=>t.onclick=()=>{ showTab=t.dataset.tab; render(); });
+  // codex
+  document.querySelectorAll(".pill[data-cxfilter]").forEach(p=>p.onclick=()=>{ cxFilter=p.dataset.cxfilter||null; render(); });
+  document.querySelectorAll(".cx[data-cx]").forEach(c=>c.onclick=()=>openCodex(view.show.id, c.dataset.cx));
+  const cxAdd=document.getElementById("cxAddBtn"); if(cxAdd) cxAdd.onclick=()=>{ cxEditing=null; openCodexModal("new",null); };
+}
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeDrawer(); closeModal(); closeCodex(); closeCodexModal(); } });
+
+/* ---- expose inline-onclick handlers (module scope isn't global) ---- */
+Object.assign(window, {
+  goHome, openShow, openSeason,
+  saveReview, clearReview, closeDrawer,
+  openModal, closeModal, addShow,
+  openCodex, closeCodex, saveCodexNote, editCodexEntry, deleteCodexEntry,
+  openCodexModal, closeCodexModal, saveCodexEntry
+});
+
+/* ===========================================================================
+   AUTH GATE + STARTUP
+   =========================================================================== */
+const gate   = document.getElementById("authgate");
+const chip   = document.getElementById("userchip");
+const errEl  = document.getElementById("autherr");
+let booted = false;
+
+document.getElementById("googleBtn").onclick = async ()=>{
+  errEl.textContent = "";
+  try{ await signInWithPopup(auth, provider); }
+  catch(e){
+    console.error(e);
+    errEl.textContent = (e && e.code === "auth/popup-blocked")
+      ? "Popup blocked — allow popups for this site and try again."
+      : "Sign-in failed. Check the console for details.";
+  }
+};
+
+function renderChip(user){
+  const photo = user.photoURL ? `<img src="${user.photoURL}" alt="">` : "";
+  chip.innerHTML = `${photo}<button class="signout" id="signoutBtn">Sign out</button>`;
+  chip.style.display = "flex";
+  document.getElementById("signoutBtn").onclick = ()=> signOut(auth);
+}
+
+onAuthStateChanged(auth, async (user)=>{
+  if(user){
+    uid = user.uid;
+    gate.classList.add("hide");
+    renderChip(user);
+    if(!booted){ booted = true; await boot(); }
+  } else {
+    uid = null;
+    booted = false;
+    chip.style.display = "none";
+    gate.classList.remove("hide");
+  }
+});
+</script>
+</body>
+</html>
