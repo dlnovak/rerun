@@ -135,14 +135,16 @@
   .addcard span{font-size:12.5px;max-width:170px}
 
   /* ============ season strip ============ */
-  .season-strip{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 22px}
-  .seasonbtn{border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:10px;
-    padding:9px 13px;cursor:pointer;font-family:inherit;font-size:13px;transition:.15s;min-width:52px;text-align:center}
-  .seasonbtn small{display:block;font-size:10px;color:var(--mute);margin-top:2px}
-  .seasonbtn:hover{border-color:var(--accent)}
-  .seasonbtn.on{background:var(--accent-2);color:var(--accent-ink);border-color:var(--accent-2);font-weight:700}
-  .seasonbtn.on small{color:var(--accent-ink);opacity:.7}
-  .seasonbtn.wide{min-width:auto}
+  .season-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:8px 0 22px}
+  .seasoncard{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    color:var(--cream);border-radius:14px;padding:16px 18px;cursor:pointer;font-family:inherit;transition:.15s;
+    text-align:left;display:flex;flex-direction:column;gap:12px}
+  .seasoncard:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 12px 26px -18px var(--accent)}
+  .seasoncard-main{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .seasoncard-name{font-family:var(--font-display);font-size:19px;font-weight:800;line-height:1.1}
+  .seasoncard-count{font-size:12.5px;color:var(--mute);flex:none}
+  .seasoncard-bar{height:6px;border-radius:99px;background:rgba(0,0,0,.35);border:1px solid var(--line);overflow:hidden}
+  .seasoncard-bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 60%,#000),var(--accent))}
 
   .stat-row{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 24px}
   .stat{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:12px 16px;min-width:92px}
@@ -159,7 +161,8 @@
   .ep.rated .num{color:var(--cream)}
   .ep .body{flex:1;min-width:0}
   .ep .t{font-weight:600;font-size:15px}
-  .ep .s{font-size:11.5px;color:var(--mute);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .ep-syn{font-size:12.5px;color:var(--mute);line-height:1.4;margin:4px 0 2px;max-width:60ch}
+  .ep .s{font-size:11.5px;color:var(--mute);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .ep .verdict{font-size:18px;flex:none;width:30px;text-align:center}
   .ep .chiprow{display:flex;gap:5px;flex-wrap:wrap}
   .ep .chiprow em{font-style:normal;font-size:10px;border-radius:5px;padding:2px 6px;background:rgba(0,0,0,.3);border:1px solid var(--line);color:var(--mute)}
@@ -175,6 +178,7 @@
   .drawer .dhead{padding:20px 20px 14px;border-bottom:1px solid var(--line)}
   .drawer .eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-2)}
   .drawer h2{font-family:var(--font-display);margin:6px 0 0;font-size:22px;line-height:1.15;font-weight:800}
+  .d-syn{font-size:13px;color:var(--mute);line-height:1.45;margin-top:8px}
   .drawer .dbody{padding:20px;overflow-y:auto;flex:1}
   .drawer .x{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--line);color:var(--cream);
     width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:16px;line-height:1}
@@ -291,13 +295,14 @@
 
   /* episode characters (in review drawer) */
   .epchars{display:flex;flex-wrap:wrap;gap:8px}
-  .epchar{border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:10px;
-    padding:9px 12px;font-size:13px;cursor:pointer;font-family:inherit;transition:.13s;display:inline-flex;
-    align-items:center;gap:6px}
-  .epchar:hover{border-color:var(--accent);background:var(--panel-2)}
-  .epchar.fav{border-color:var(--accent)}
-  .epchar-star{color:var(--accent);font-size:12px;line-height:1}
-  .epchar-star:empty{display:none}
+  .epchar{border:1px solid var(--line);background:var(--panel);border-radius:10px;
+    padding:7px 11px 7px 8px;font-size:13px;transition:.13s;display:inline-flex;align-items:center;gap:7px}
+  .epchar.standout{border-color:var(--accent)}
+  .epchar-starbtn{background:none;border:none;cursor:pointer;font-size:15px;line-height:1;color:var(--mute);padding:0;transition:.13s}
+  .epchar-starbtn:hover{color:var(--accent);transform:scale(1.15)}
+  .epchar-starbtn.on{color:var(--accent)}
+  .epchar-name{color:var(--cream);cursor:pointer}
+  .epchar-name:hover{color:var(--accent)}
   .epchar-dot{color:var(--accent-2);font-size:16px;line-height:0}
 
   /* ============ characters ============ */
@@ -309,15 +314,7 @@
   .ch-role{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2)}
   .ch h4{font-family:var(--font-display);margin:7px 0 6px;font-size:18px;font-weight:800;line-height:1.12;padding-right:26px}
   .ch-tag{font-size:12.5px;color:var(--mute);line-height:1.35}
-  .ch-star{position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;font-size:19px;
-    line-height:1;color:var(--mute);transition:.14s;padding:0}
-  .ch-star:hover{color:var(--accent);transform:scale(1.15)}
-  .ch-star.on{color:var(--accent)}
-  .fav-banner{display:flex;align-items:center;gap:13px;border:1px solid var(--accent);border-radius:14px;
-    padding:14px 16px;margin:2px 0 18px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent)}
-  .fav-banner .fav-star{font-size:26px;color:var(--accent);line-height:1}
-  .fav-lbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
-  .fav-name{font-family:var(--font-display);font-size:20px;font-weight:800;margin-top:2px}
+  .ch-note-flag{margin-top:9px;font-size:11px;color:var(--accent-2);letter-spacing:.04em}
   .chd-tag{color:var(--mute);font-size:13.5px;margin-top:6px}
   .chd-bio{font-size:14.5px;line-height:1.6;color:var(--cream);margin:0}
   .favbtn{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:12px;
@@ -402,7 +399,7 @@
 <div class="scrim" id="scrim" onclick="closeDrawer()"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
   <button class="x" onclick="closeDrawer()" aria-label="Close">✕</button>
-  <div class="dhead"><div class="eyebrow" id="d-eyebrow"></div><h2 id="d-title"></h2></div>
+  <div class="dhead"><div class="eyebrow" id="d-eyebrow"></div><h2 id="d-title"></h2><div class="d-syn" id="d-syn"></div></div>
   <div class="dbody">
     <div class="fieldlabel">Verdict</div>
     <div class="verdict-row" id="d-verdict">
@@ -489,7 +486,6 @@
     <div class="chd-tag" id="chd-tag"></div>
   </div>
   <div class="dbody">
-    <button class="favbtn" id="chd-star" onclick="toggleFavFromDrawer()">☆ Mark as favorite</button>
     <div class="fieldlabel">Bio</div>
     <p class="chd-bio" id="chd-bio"></p>
     <div class="fieldlabel">Your take <span style="text-transform:none;letter-spacing:0">(optional)</span></div>
@@ -607,6 +603,8 @@ const FEELINGS = ["Nostalgic","Funny","Action-packed","Cheesy","Clever","Boring"
 const CHARACTERS = {"tmnt-1987":[{"id":"ch-t1","name":"Leonardo","role":"Hero","tagline":"Leader in blue","bio":"The level-headed leader of the Turtles, wielding twin katana. Named for Leonardo da Vinci, he's the disciplined one who keeps his brothers focused and follows Splinter's teachings most closely.","season":1},{"id":"ch-t2","name":"Michelangelo","role":"Hero","tagline":"Party dude in orange","bio":"The fun-loving free spirit of the team, armed with nunchucks and an endless appetite for pizza. The comic relief, famous for 'Cowabunga!' and a laid-back surfer attitude.","season":1},{"id":"ch-t3","name":"Donatello","role":"Hero","tagline":"Brains in purple","bio":"The team's inventor and tech genius, fighting with a bo staff. He builds and fixes the Turtles' gadgets and vehicles, and does machines — as the theme song says.","season":1},{"id":"ch-t4","name":"Raphael","role":"Hero","tagline":"Rebel in red","bio":"The tough, sarcastic hothead of the group, wielding twin sai. Quick to anger and quick with a wisecrack, he often breaks the fourth wall with a sardonic aside.","season":1},{"id":"ch-t5","name":"Splinter","role":"Ally","tagline":"The wise sensei","bio":"Formerly the ninja master Hamato Yoshi, mutated into a rat by Krang's mutagen. The Turtles' adoptive father and teacher, he trained them in ninjutsu in the sewers beneath New York.","season":1},{"id":"ch-t6","name":"April O'Neil","role":"Ally","tagline":"Channel 6 reporter","bio":"An intrepid TV news reporter for Channel 6 and the Turtles' first human friend and surrogate sister. Her investigation into a citywide crime wave first led her into the sewers and into the Turtles' lives.","season":1},{"id":"ch-t7","name":"Shredder","role":"Villain","tagline":"The armored archenemy","bio":"Oroku Saki, the blade-armored leader of the Foot Clan and the Turtles' archenemy. Allied with Krang, he schemes endlessly from the Technodrome to destroy the Turtles and conquer New York.","season":1},{"id":"ch-t8","name":"Krang","role":"Villain","tagline":"Warlord from Dimension X","bio":"A disembodied alien brain and exiled warlord from Dimension X. Robbed of his body, he rides in a robotic walker and commands the Technodrome, funding and masterminding most of Shredder's schemes.","season":1},{"id":"ch-t9","name":"Bebop","role":"Henchman","tagline":"Mutant warthog","bio":"A former street-gang punk mutated by Shredder into a humanoid warthog. Clumsy, oafish, and dim, he and Rocksteady serve as Shredder's bumbling muscle. Named after the jazz genre.","season":1},{"id":"ch-t10","name":"Rocksteady","role":"Henchman","tagline":"Mutant rhino","bio":"A former street-gang thug mutated by Shredder into a humanoid rhinoceros. Strong but slow-witted, he and Bebop constantly botch their attempts to defeat the Turtles.","season":1},{"id":"ch-t11","name":"Baxter Stockman","role":"Villain","tagline":"Inventor of the Mousers","bio":"A brilliant but unscrupulous scientist who invented the Mouser robots — rat-hunting machines that Shredder mass-produces to hunt Splinter. Later in the series he's mutated into a humanoid fly. Debuts in 'A Thing About Rats.'","season":1}],"batman-tas":[{"id":"ch-b1","name":"Batman / Bruce Wayne","role":"Hero","tagline":"The Dark Knight","bio":"Billionaire Bruce Wayne, who watched his parents gunned down as a child and swore war on Gotham's criminals. By night he becomes Batman, the World's Greatest Detective, protecting the city from the shadows.","season":1},{"id":"ch-b2","name":"Alfred Pennyworth","role":"Ally","tagline":"The loyal butler","bio":"Bruce Wayne's devoted butler, confidant, and surrogate father figure. Dry-witted and unflappable, he tends Wayne Manor, patches up Batman's wounds, and quietly keeps the whole operation running.","season":1},{"id":"ch-b3","name":"Commissioner Gordon","role":"Ally","tagline":"Gotham's honest cop","bio":"Commissioner James Gordon, the honest heart of the Gotham City Police Department. One of the few officials Batman trusts, he works with the Dark Knight to keep the city from falling to corruption and crime.","season":1},{"id":"ch-b4","name":"Harvey Bullock","role":"Ally","tagline":"The rumpled detective","bio":"A gruff, slovenly GCPD detective who distrusts Batman but is a dogged cop underneath the attitude. Loyal to Gordon, he does things his own rough way.","season":1},{"id":"ch-b5","name":"The Joker","role":"Villain","tagline":"The Clown Prince of Crime","bio":"Batman's ultimate nemesis: a cackling, homicidal madman with bleached skin and a permanent grin. Voiced unforgettably by Mark Hamill, he commits crimes for the sheer twisted joy of it.","season":1},{"id":"ch-b6","name":"Catwoman / Selina Kyle","role":"Villain","tagline":"The feline burglar","bio":"Selina Kyle, a cat-loving cat burglar who prowls Gotham's rooftops. A morally gray thief and sometime ally, she shares an electric, complicated attraction with Batman. Debuts in 'The Cat and the Claw.'","season":1},{"id":"ch-b7","name":"Two-Face / Harvey Dent","role":"Villain","tagline":"The man of two minds","bio":"Former DA Harvey Dent, Bruce Wayne's friend, whose face and mind were split by tragedy into a coin-flipping criminal. The series suggested his dual nature existed even before the acid — a genuinely tragic villain.","season":1},{"id":"ch-b8","name":"Mr. Freeze / Victor Fries","role":"Villain","tagline":"Cold and grieving","bio":"Victor Fries, a scientist transformed into a being who can only survive in sub-zero cold, waging an icy war after the loss of his wife Nora. His debut, 'Heart of Ice,' won an Emmy and redefined the character.","season":1},{"id":"ch-b9","name":"Poison Ivy / Pamela Isley","role":"Villain","tagline":"Eco-terrorist botanist","bio":"Dr. Pamela Isley, a botanist and eco-terrorist who wields toxins, and controls plants, and poisons with a kiss. She debuts in 'Pretty Poison,' targeting Harvey Dent over a paved-over rose garden.","season":1},{"id":"ch-b10","name":"The Penguin / Oswald Cobblepot","role":"Villain","tagline":"The gentleman of crime","bio":"Oswald Cobblepot, a short, beak-nosed crime lord with aristocratic airs and an arsenal of trick umbrellas. He fancies himself a refined gentleman even while running Gotham's underworld.","season":1},{"id":"ch-b11","name":"Mad Hatter / Jervis Tetch","role":"Villain","tagline":"Obsessed with Wonderland","bio":"Jervis Tetch, a lonely mind-control scientist obsessed with Alice in Wonderland. In 'Mad as a Hatter' he uses his hypnotic technology in a heartbreaking bid to win a woman who doesn't love him.","season":1},{"id":"ch-b12","name":"Clayface / Matt Hagen","role":"Villain","tagline":"The shapeshifting actor","bio":"Matt Hagen, a washed-up actor transformed into a shape-shifting mass of living clay after a disfiguring accident and a corporate cream. He can mimic anyone, a tragic monster introduced in 'Feat of Clay.'","season":1},{"id":"ch-b13","name":"Clock King / Temple Fugate","role":"Villain","tagline":"Punctuality and vengeance","bio":"Temple Fugate, an obsessively punctual efficiency expert whose life was ruined by a single missed schedule. He returns as a time-obsessed villain bent on revenge against Mayor Hill.","season":1},{"id":"ch-b14","name":"Rupert Thorne","role":"Villain","tagline":"The Gotham mob boss","bio":"A powerful, old-school Gotham crime boss who runs much of the city's organized crime. A recurring mob antagonist who tangles with both Batman and the costumed rogues.","season":1},{"id":"ch-b15","name":"Scarecrow / Jonathan Crane","role":"Villain","tagline":"Master of fear","bio":"Dr. Jonathan Crane, a disgraced psychologist obsessed with fear, who uses a fear-toxin to terrorize victims with their worst nightmares. Debuts stalking Batman in 'Nothing to Fear.'","season":1},{"id":"ch-b16","name":"Man-Bat / Kirk Langstrom","role":"Villain","tagline":"The tragic creature","bio":"Dr. Kirk Langstrom, a scientist whose serum to cure deafness mutates him into a monstrous man-bat. The very first BTAS episode, 'On Leather Wings,' introduces him as a tragic, misunderstood creature.","season":1}]};
 const APPEARANCES = {"tmnt-1987":{"1":["ch-t1","ch-t2","ch-t3","ch-t4","ch-t5","ch-t6","ch-t7"],"2":["ch-t1","ch-t2","ch-t3","ch-t4","ch-t5","ch-t6","ch-t7","ch-t8","ch-t9","ch-t10"],"3":["ch-t1","ch-t2","ch-t3","ch-t4","ch-t5","ch-t6","ch-t7","ch-t8","ch-t9","ch-t11"],"4":["ch-t1","ch-t2","ch-t3","ch-t4","ch-t5","ch-t6","ch-t7","ch-t8","ch-t9","ch-t10"],"5":["ch-t1","ch-t2","ch-t3","ch-t4","ch-t5","ch-t6","ch-t7","ch-t8","ch-t9","ch-t10"]},"batman-tas":{"1":["ch-b1","ch-b2","ch-b3","ch-b16"],"2":["ch-b1","ch-b2","ch-b3","ch-b5"],"3":["ch-b1","ch-b2","ch-b3","ch-b15"],"4":["ch-b1","ch-b2","ch-b3","ch-b5"],"5":["ch-b1","ch-b2","ch-b3","ch-b9","ch-b7"],"6":["ch-b1","ch-b2","ch-b3"],"7":["ch-b1","ch-b2","ch-b3","ch-b4"],"8":["ch-b1","ch-b2","ch-b3"],"9":["ch-b1","ch-b2","ch-b3","ch-b5"],"10":["ch-b1","ch-b2","ch-b3","ch-b7"],"11":["ch-b1","ch-b2","ch-b3","ch-b7"],"12":["ch-b1","ch-b2","ch-b3","ch-b14"],"13":["ch-b1","ch-b2","ch-b3","ch-b5"],"14":["ch-b1","ch-b2","ch-b3","ch-b8","ch-b4"],"15":["ch-b1","ch-b2","ch-b3","ch-b6"],"16":["ch-b1","ch-b2","ch-b3","ch-b6"],"17":["ch-b1","ch-b2","ch-b3"],"18":["ch-b1","ch-b2","ch-b3"],"19":["ch-b1","ch-b2","ch-b3"],"20":["ch-b1","ch-b2","ch-b3","ch-b12"],"21":["ch-b1","ch-b2","ch-b3","ch-b12"],"22":["ch-b1","ch-b2","ch-b3","ch-b5"],"23":["ch-b1","ch-b2","ch-b3"],"24":["ch-b1","ch-b2","ch-b3","ch-b15"],"25":["ch-b1","ch-b2","ch-b3","ch-b13"],"26":["ch-b1","ch-b2","ch-b3","ch-b4"],"27":["ch-b1","ch-b2","ch-b3","ch-b11"],"28":["ch-b1","ch-b2","ch-b3","ch-b15"]}};
 function epChars(showId, epNum){ const ids=((APPEARANCES[showId]||{})[String(epNum)])||[]; return ids.map(id=>charById(showId,id)).filter(Boolean); }
+const SYNOPSES = {"tmnt-1987":{"1":"Channel 6 reporter April O'Neil, chasing a citywide crime wave, is saved by four mutant turtles and learns their origin from their sensei, Splinter.","2":"The Shredder kidnaps Splinter to lure the Turtles into his mobile fortress, the Technodrome, where they first face his mutant henchmen Bebop and Rocksteady.","3":"The Turtles trace an army of rat-hunting Mouser robots to their inventor, Baxter Stockman, and discover the alien brain Krang backing Shredder.","4":"Shredder opens a portal to Dimension X, bringing through the hot-rodding Neutrinos and Krang's Stone Warriors as the Turtles build their Party Wagon.","5":"Shredder dares the Turtles to the Technodrome to seize a retro-mutagen gun, and they arrive just in time to see Krang emerge in his monstrous new body."},"batman-tas":{"1":"Batman investigates a string of attacks and uncovers Dr. Kirk Langstrom, a scientist whose serum has turned him into the monstrous Man-Bat.","2":"The Joker hijacks the airwaves on Christmas Eve, forcing Batman and Robin to find his hostages before midnight in a deadly holiday game.","3":"The Scarecrow uses a fear-inducing toxin to terrorize Gotham, and Batman must confront a hallucination of his own deepest guilt.","4":"The Joker crashes the city's economy with a laughing-gas scheme, and Batman scrambles to stop the chaos on tax day.","5":"Batman discovers that Harvey Dent's new girlfriend is the eco-terrorist Poison Ivy, who is poisoning Dent over a paved-over rose garden.","6":"Batman uncovers the Sewer King, who forces orphaned children into servitude in the tunnels beneath Gotham.","7":"Three officers recount wildly different versions of a botched police operation, and the truth reveals who really let a criminal escape.","8":"Kidnapped and stripped of his memory, Bruce Wayne must recall who he is while forced into hard labor at a desert work camp.","9":"The Joker plots to murder Gotham's mayor at a birthday party, hiding a deadly surprise among the entertainment.","10":"District Attorney Harvey Dent's buried temper and a chemical accident split him into the coin-flipping criminal Two-Face.","11":"Now fully Two-Face, Harvey wages war on crime boss Rupert Thorne as Batman tries to save what's left of his friend.","12":"An aging mob boss wants to go straight, but his ties to Rupert Thorne and his son's drug addiction pull him back in.","13":"When two kids hide an injured Batman in their basement, they must protect him from the Joker while he recovers.","14":"Batman uncovers the tragic origin of Mr. Freeze, a scientist frozen by a corporate betrayal that also doomed his dying wife. (Emmy-winning debut.)","15":"Batman meets cat burglar Selina Kyle, aka Catwoman, while both pursue the terrorist Red Claw, whose plot endangers the city.","16":"Batman and Catwoman are captured by Red Claw, forcing an uneasy alliance to stop a biological weapon.","17":"A blind ex-con uses a high-tech invisibility suit to terrorize the family that wronged him and get to his estranged daughter.","18":"Batman seeks out the reclusive actor who once played his childhood hero, the Gray Ghost, to solve a case of bombings mirroring an old episode.","19":"A charismatic con man posing as a psychic prophet swindles Gotham's elite while plotting to eliminate his skeptics.","20":"Actor Matt Hagen, disfigured and dependent on a face-altering cream, is transformed into the shape-shifting Clayface.","21":"Clayface hunts the corrupt businessman who ruined him, and Batman must stop the tragic monster before he kills.","22":"Years after a chance encounter, the Joker blackmails a terrified everyman into helping with a scheme against Commissioner Gordon.","23":"Batman investigates a crocodilian killer, the brute Killer Croc, framing an innocent man for murder.","24":"Robin is targeted by a fear campaign as the Scarecrow returns with a plot tied to a college football gambling scheme.","25":"Punctuality-obsessed Temple Fugate, ruined by a single missed schedule, returns as the Clock King to destroy Mayor Hill.","26":"On the anniversary of his parents' deaths, Batman keeps a yearly appointment in Crime Alley while foiling a developer's deadly scheme.","27":"Lonely scientist Jervis Tetch, obsessed with Alice in Wonderland, uses mind-control chips in a heartbreaking bid to win a woman's love.","28":"Poisoned by the Scarecrow's fear gas and strapped to a hospital bed, Batman relives his origin as he fights the hallucinations to survive."}};
+function epSynopsis(showId, epNum){ return (SYNOPSES[showId]||{})[String(epNum)]||""; }
 const CHAR_ROLES = ["Hero","Ally","Villain","Henchman"];
 const CHAR_ROLE_ICON = {Hero:"\u25C6",Ally:"\u2726",Villain:"\u2620",Henchman:"\u25AA"};
 function showHasChars(show){ return !!(CHARACTERS[show.id] && CHARACTERS[show.id].length); }
@@ -776,8 +774,15 @@ function renderShow(show){
   const strip=show.seasons.map(sd=>{
     let rated=0; sd.episodes.forEach(ep=>{ if(reviews[rkey(show.id,sd.season,ep.e)]) rated++; });
     const lbl=seasonLabel(show,sd.season);
-    const isNamed=lbl!=="Season "+sd.season;
-    return `<button class="seasonbtn ${isNamed?'wide':''}" data-season="${sd.season}">${isNamed?lbl:'S'+sd.season}<small>${rated}/${sd.episodes.length}</small></button>`;
+    const total=sd.episodes.length;
+    const pct=total?Math.round(rated/total*100):0;
+    return `<button class="seasoncard" data-season="${sd.season}">
+      <div class="seasoncard-main">
+        <span class="seasoncard-name">${lbl}</span>
+        <span class="seasoncard-count">${rated}/${total}</span>
+      </div>
+      <div class="seasoncard-bar"><i style="width:${pct}%"></i></div>
+    </button>`;
   }).join("");
   const genres=(show.genres||[]).map(g=>`<span class="microtag">${g}</span>`).join(" ");
   const hasCx=showHasCodex(show);
@@ -843,38 +848,25 @@ function escapeHtml(s){ return (s||"").replace(/&/g,'&amp;').replace(/</g,'&lt;'
 // ---------- characters tab ----------
 function renderCharactersTab(show){
   const list=(CHARACTERS[show.id]||[]).slice();
-  const cs=charState[show.id]||{favId:null,notes:{}};
+  const cs=charState[show.id]||{notes:{}};
   const rolesPresent=CHAR_ROLES.filter(r=>list.some(c=>c.role===r));
   const filterPills=`<button class="pill ${!charFilter?'on':''}" data-charfilter="">All<span class="cnt">${list.length}</span></button>`+
     rolesPresent.map(r=>`<button class="pill ${charFilter===r?'on':''}" data-charfilter="${r}">${r}<span class="cnt">${list.filter(c=>c.role===r).length}</span></button>`).join("");
   let shown=charFilter?list.filter(c=>c.role===charFilter):list;
   shown.sort((a,b)=>(CHAR_ROLES.indexOf(a.role)-CHAR_ROLES.indexOf(b.role))||a.name.localeCompare(b.name));
-  // favorite highlight banner
-  let favBanner="";
-  if(cs.favId){ const f=charById(show.id,cs.favId);
-    if(f) favBanner=`<div class="fav-banner"><span class="fav-star">\u2605</span><div><div class="fav-lbl">The one that caught your adoration</div><div class="fav-name">${escapeHtml(f.name)}</div></div></div>`; }
   const cards=shown.map(c=>{
-    const isFav=cs.favId===c.id;
-    return `<div class="ch ${isFav?'isfav':''}" data-char="${c.id}">
-      <button class="ch-star ${isFav?'on':''}" data-charstar="${c.id}" title="${isFav?'Your favorite':'Mark as favorite'}">${isFav?'\u2605':'\u2606'}</button>
+    const hasNote=cs.notes&&cs.notes[c.id];
+    return `<div class="ch" data-char="${c.id}">
       <div class="ch-role">${CHAR_ROLE_ICON[c.role]||''} ${c.role}</div>
       <h4>${escapeHtml(c.name)}</h4>
       <div class="ch-tag">${escapeHtml(c.tagline)}</div>
+      ${hasNote?'<div class="ch-note-flag">\u2022 your note</div>':''}
     </div>`;
   }).join("");
   return `
-    <div class="sub" style="margin-top:4px">The Season 1 cast. Tap a character for their bio \u2014 and star the one that caught your adoration.</div>
-    ${favBanner}
+    <div class="sub" style="margin-top:4px">The Season 1 cast. Tap a character for their bio and notes. Mark episode standouts on each episode's page.</div>
     <div class="cx-type-filter">${filterPills}</div>
     <div class="char-grid">${cards}</div>`;
-}
-function toggleFav(showId, cid){
-  const cs=charState[showId]||(charState[showId]={favId:null,notes:{}});
-  cs.favId = (cs.favId===cid) ? null : cid;
-  saveCharState(showId);
-  // if detail drawer open for this show, refresh its star
-  if(charViewing && charViewing.showId===showId) syncCharDrawerStar();
-  render();
 }
 // character detail drawer
 function openChar(showId, cid){
@@ -885,7 +877,6 @@ function openChar(showId, cid){
   document.getElementById("chd-name").textContent=c.name;
   document.getElementById("chd-tag").textContent=c.tagline;
   document.getElementById("chd-bio").textContent=c.bio;
-  syncCharDrawerStar();
   // personal note
   const note=(cs.notes&&cs.notes[cid])||"";
   const ta=document.getElementById("chd-note"); ta.value=note;
@@ -896,15 +887,6 @@ function openChar(showId, cid){
   document.getElementById("ch-drawer").classList.add("open");
   document.getElementById("ch-drawer").setAttribute("aria-hidden","false");
 }
-function syncCharDrawerStar(){
-  if(!charViewing) return;
-  const cs=charState[charViewing.showId]||{favId:null};
-  const isFav=cs.favId===charViewing.cid;
-  const btn=document.getElementById("chd-star");
-  btn.textContent=isFav?"\u2605 Your favorite":"\u2606 Mark as favorite";
-  btn.classList.toggle("on",isFav);
-}
-function toggleFavFromDrawer(){ if(charViewing) toggleFav(charViewing.showId, charViewing.cid); }
 async function saveCharNote(){
   if(!charViewing) return;
   const cs=charState[charViewing.showId]||(charState[charViewing.showId]={favId:null,notes:{}});
@@ -927,11 +909,15 @@ function renderSeason(show,n){
     const score=rated&&r.score?`<span>★ ${r.score}/10</span>`:'';
     const kw=rated&&r.keywords&&r.keywords.length?`<span>· ${r.keywords.length} kw</span>`:'';
     const cxc=rated&&r.codex&&r.codex.length?`<span>· ${r.codex.length} codex</span>`:'';
+    const stc=rated&&r.standouts&&r.standouts.length?`<span>· ★${r.standouts.length}</span>`:'';
     const verEmo=rated&&r.verdict?VERDICT_META[r.verdict].emo:'';
+    const syn=epSynopsis(show.id,ep.e);
+    const synLine=syn?`<div class="ep-syn">${escapeHtml(syn)}</div>`:'';
     return `<div class="ep ${rated?'rated':''}" data-e="${ep.e}">
       <div class="num">${rated&&r.verdict?verdictDot(r.verdict):('E'+ep.e)}</div>
       <div class="body"><div class="t">${ep.title}</div>
-        <div class="s"><span>Ep ${ep.e} · #${ep.overall} overall</span>${score}${kw}${cxc}${chips}</div></div>
+        ${synLine}
+        <div class="s"><span>Ep ${ep.e} · #${ep.overall} overall</span>${score}${kw}${cxc}${stc}${chips}</div></div>
       <div class="verdict">${verEmo}</div></div>`;
   }).join("");
   const lbl=seasonLabel(show,n);
@@ -952,6 +938,8 @@ function openReview(show,n,ep){
   const theme=show.theme||"shelf";
   document.getElementById("d-eyebrow").textContent=`${show.title} · ${seasonLabel(show,n)} · E${ep.e} · #${ep.overall}`;
   document.getElementById("d-title").textContent=ep.title;
+  const synEl=document.getElementById("d-syn"); const synTxt=epSynopsis(show.id,ep.e);
+  if(synTxt){ synEl.textContent=synTxt; synEl.style.display=""; } else { synEl.textContent=""; synEl.style.display="none"; }
   // themed verdict labels
   const L=VERDICT_LABELS[theme]||VERDICT_LABELS.shelf;
   document.querySelectorAll("#d-verdict .vbtn").forEach(b=>{ b.querySelector(".lbl").textContent=L[b.dataset.v]; });
@@ -1001,20 +989,31 @@ function openReview(show,n,ep){
       aWrap.innerHTML=`<span class="appears-empty">No codex entries yet — add some on the show's Codex tab.</span>`;
     }
   } else { aLabel.style.display="none"; aWrap.innerHTML=""; }
-  // characters in this episode (baked-in cast, tap to open bio/note/star)
+  // characters in this episode: star = standout for THIS episode (multiple allowed); name = open bio
+  if(!draft.standouts) draft.standouts=[];
   const ecLabel=document.getElementById("d-epchars-label"), ecWrap=document.getElementById("d-epchars");
   const cast = (n===1) ? epChars(show.id, ep.e) : [];
   if(cast.length){
     ecLabel.style.display="";
-    const cs=charState[show.id]||{favId:null,notes:{}};
+    const cs=charState[show.id]||{notes:{}};
     ecWrap.innerHTML=cast.map(c=>{
-      const isFav=cs.favId===c.id;
+      const isStandout=draft.standouts.includes(c.id);
       const hasNote=cs.notes&&cs.notes[c.id];
-      return `<button class="epchar ${isFav?'fav':''}" data-epchar="${c.id}">
-        <span class="epchar-star">${isFav?'\u2605':''}</span>${escapeHtml(c.name)}${hasNote?'<span class="epchar-dot" title="You have a note">\u2022</span>':''}
-      </button>`;
+      return `<div class="epchar ${isStandout?'standout':''}" data-epchar="${c.id}">
+        <button class="epchar-starbtn ${isStandout?'on':''}" data-starchar="${c.id}" title="${isStandout?'Standout of this episode':'Mark as standout of this episode'}">${isStandout?'\u2605':'\u2606'}</button>
+        <span class="epchar-name" data-openchar="${c.id}">${escapeHtml(c.name)}</span>
+        ${hasNote?'<span class="epchar-dot" title="You have a note on them">\u2022</span>':''}
+      </div>`;
     }).join("");
-    ecWrap.querySelectorAll(".epchar").forEach(b=>b.onclick=async()=>{ const cid=b.dataset.epchar; await saveReview(true); openChar(show.id, cid); });
+    ecWrap.querySelectorAll(".epchar-starbtn").forEach(b=>b.onclick=(e)=>{
+      e.stopPropagation();
+      const cid=b.dataset.starchar, i=draft.standouts.indexOf(cid);
+      if(i>=0) draft.standouts.splice(i,1); else draft.standouts.push(cid);
+      const chip=b.closest(".epchar");
+      b.classList.toggle("on"); b.textContent=b.classList.contains("on")?'\u2605':'\u2606';
+      if(chip) chip.classList.toggle("standout", b.classList.contains("on"));
+    });
+    ecWrap.querySelectorAll(".epchar-name").forEach(s=>s.onclick=async()=>{ const cid=s.dataset.openchar; await saveReview(true); openChar(show.id, cid); });
   } else { ecLabel.style.display="none"; ecWrap.innerHTML=""; }
   document.getElementById("d-notes").value=draft.notes||"";
   document.getElementById("d-notes").oninput=(e)=>draft.notes=e.target.value;
@@ -1029,7 +1028,7 @@ function renderKW(){ const wrap=document.getElementById("d-kwwrap"); wrap.queryS
     el.querySelector("button").onclick=(e)=>{ e.stopPropagation(); draft.keywords.splice(idx,1); renderKW(); }; wrap.insertBefore(el,input); }); }
 async function saveReview(silent){ if(!editing) return; const k=rkey(editing.showId,editing.s,editing.e);
   const anyDial=draft.dials&&Object.values(draft.dials).some(v=>v>0);
-  const empty=!draft.verdict&&!draft.feelings.length&&!draft.keywords.length&&!draft.score&&!(draft.notes||"").trim()&&!(draft.codex&&draft.codex.length)&&!anyDial;
+  const empty=!draft.verdict&&!draft.feelings.length&&!draft.keywords.length&&!draft.score&&!(draft.notes||"").trim()&&!(draft.codex&&draft.codex.length)&&!anyDial&&!(draft.standouts&&draft.standouts.length);
   if(empty){ delete reviews[k]; await sDel("rr:rev:"+k); } else { draft.ts=Date.now(); reviews[k]=draft; await sSet("rr:rev:"+k,draft); }
   if(silent===true){ closeDrawer(); return; }
   document.getElementById("d-saved").classList.add("show"); setTimeout(()=>{ closeDrawer(); render(); },380); }
@@ -1117,7 +1116,7 @@ function wire(){
   const add=document.getElementById("addShowBtn"); if(add) add.onclick=openModal;
   document.querySelectorAll(".pill[data-genre]").forEach(p=>p.onclick=()=>{ genreFilter=p.dataset.genre||null; render(); });
   const hs=document.getElementById("homeSearch"); if(hs) hs.oninput=(e)=>{ searchQ=e.target.value; const pos=e.target.selectionStart; render(); const n=document.getElementById("homeSearch"); if(n){n.focus();n.setSelectionRange(pos,pos);} };
-  document.querySelectorAll(".seasonbtn[data-season]").forEach(b=>b.onclick=()=>openSeason(parseInt(b.dataset.season)));
+  document.querySelectorAll(".seasoncard[data-season]").forEach(b=>b.onclick=()=>openSeason(parseInt(b.dataset.season)));
   document.querySelectorAll(".ep[data-e]").forEach(row=>row.onclick=()=>{ const sd=view.show.seasons.find(x=>x.season===view.season); const ep=sd.episodes.find(x=>x.e===parseInt(row.dataset.e)); openReview(view.show,view.season,ep); });
   document.querySelectorAll("#m-themepick .themeopt").forEach(o=>o.onclick=()=>{ newTheme=o.dataset.theme; document.querySelectorAll("#m-themepick .themeopt").forEach(x=>x.classList.toggle("on",x===o)); });
   // tabs
@@ -1128,7 +1127,6 @@ function wire(){
   const cxAdd=document.getElementById("cxAddBtn"); if(cxAdd) cxAdd.onclick=()=>{ cxEditing=null; openCodexModal("new",null); };
   // characters
   document.querySelectorAll(".pill[data-charfilter]").forEach(p=>p.onclick=()=>{ charFilter=p.dataset.charfilter||null; render(); });
-  document.querySelectorAll(".ch-star[data-charstar]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); toggleFav(view.show.id, b.dataset.charstar); });
   document.querySelectorAll(".ch[data-char]").forEach(c=>c.onclick=()=>openChar(view.show.id, c.dataset.char));
 }
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeDrawer(); closeModal(); closeCodex(); closeCodexModal(); closeChar(); } });
@@ -1140,7 +1138,7 @@ Object.assign(window, {
   openModal, closeModal, addShow,
   openCodex, closeCodex, saveCodexNote, editCodexEntry, deleteCodexEntry,
   openCodexModal, closeCodexModal, saveCodexEntry,
-  openChar, closeChar, saveCharNote, toggleFavFromDrawer
+  openChar, closeChar, saveCharNote
 });
 
 /* ===========================================================================
